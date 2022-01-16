@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang= "en">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="icon" type="image/gif" href="./img/favicon.ico">
+        <title>Google Advanced Search</title>
+        <link rel="stylesheet" href="./css/style-advanced-search.css">        
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css">
+        <link link rel="preconnect" href="https://fonts.gstatic.com">
+    </head>
+
+    <body>
+        <header>
+            <div id="container-header">          
+                <a href="./index.html"><img src="./img/pngwing.com2.png" alt="logo google" id="logo"></a>
+                <div class="row">
+                    <p>Advanced Search</p>
+                </div>
+            </div>
+        </header>
+        <div class="container">
+        
+            <div id="form">
+                <form action="https://google.com/search">
+                    <div id="top-side">
+                        <div id="title-left">
+                            <p>Find pages with...</p>
+                        </div>
+                        <div id="title-right">
+                            <p>To do this in the search box.</p>
+                        </div>
+                    </div>
+                  
+                    <div class="column-search">
+                        <div id="column1">                            
+                            <div class="left-side">
+                                <label for="input1">all these words:</label>
+                            </div>
+                            <div class="left-side">
+                                <label for="input2">this exact word o phrase:</label>
+                            </div>
+                            <div class="left-side">
+                                <label for="input3">any of these words:</label>
+                            </div>
+                            <div class="left-side">
+                                <label for="input4">none of these words:</label>
+                            </div>
+                        </div>
+                        <div id="column2">
+                            <div class="middle-side"> 
+                                <input type="text" name="as_q" class="box-input" id="input1">
+                            </div>
+                            <div class="middle-side">
+                                <input type="text" name="as_epq" class="box-input" id="input2">
+                            </div>
+                            <div class="middle-side">
+                                <input type="text" name="as_oq" class="box-input" id="input3">
+                            </div>
+                            <div class="middle-side"> 
+                                <input type="text" name="as_eq" class="box-input" id="input4">
+                            </div>                            
+                        </div>
+                        <div id="column3">
+                            <div class="right-side">
+                                <p>Type the important words: <span>tri-colour rat terrier</span></p>
+                            </div>
+                            <div class="right-side">
+                                <p>Put exact words in quotes: <span> "rat terrier"</span></p>
+                            </div>
+                            <div class="right-side">
+                                <p>Type<span>OR</span> between all the words you want: <span>miniature OR standard</span></p>
+                            </div>
+                            <div class="right-side">
+                                <p>Put a minus sign just before words that you don't want:<span>-rodent, -"Jack Russell"</span></p>
+                            </div>      
+                        </div>                                    
+                    </div>
+                    <div id="buttom-form">
+                        <input type="submit" value="Advanced search" class="buttom">
+                    </div> 
+                </form>
+            </div>
+
+        </div>
+    </body>
