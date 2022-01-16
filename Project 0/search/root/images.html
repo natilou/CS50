@@ -5,7 +5,7 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="icon" type="image/gif" href="./img/favicon.ico">
-        <title>Google</title>
+        <title>Google Images</title>
         <link rel="stylesheet" href="./css/style-index.css">        
         <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css">
         <link link rel="preconnect" href="https://fonts.gstatic.com">
@@ -13,10 +13,7 @@
         
     </head>
     <body>
-        <header>
-            <div id="top-links">
-                <a href="https://mail.google.com">Gmail</a>
-                <a href="./images.html">Images</a>
+        <div id="top-links">
                 <i class="material-icons" id="content-box">apps</i>
                 <div id="top-buttom">
                     <input type="submit" value="Sign in" id="sign-in-buttom">
@@ -26,24 +23,26 @@
         <div class="container">    
             <div class="row">
                 <img src="./img/pngwing.com2.png" alt="logo google">
-            </div>
-        
-            <div class="row">
-                <form action="https://google.com/search">
-                    <div class="input-search">
-                        <i class="fas fa-search"></i>                    
-                        <div class="row">                        
-                            <input id="input-text" type="text" name="q">
-                        </div>
-                    </div>
-                    <div class="row" id="buttom">
-                        <input type="submit" name="btnK" value="Google Search" class="buttom-search">
-                        <input type="submit" name="btnI" value ="I'm Feeling Lucky" class="buttom-search">
-                    </div>
-                    
-                </form>
+                <span id="subtitle-google">images</span>
             </div>
         </div>
+        <div class="row">
+            <form action="https://google.com/search">
+                <div class="input-search" id="input-search-images">
+                    <i class="fas fa-search"></i>                    
+                    <div class="row">                        
+                        <input id="input-text" type="text" name="q">
+                        <input type="hidden" name="tbm" value="isch">  
+                    </div>
+                    <i class="fas fa-camera" id="camera-icon"></i>
+                    <i class="fas fa-search" id="right-search-icon"></i>
+                </div>
+                 
+                     
+            </form>
+        </div>
+                   
+          
     </body>
     <footer>
         <div>
@@ -76,5 +75,4 @@
             </div>           
         </div>
     </footer>
-
 </html>
