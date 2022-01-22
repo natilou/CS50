@@ -14,14 +14,11 @@
 
 #top-links i {
   margin-top: 0.3rem;
-  color:#5f6368;
+  color: #5f6368;
 }
 
 #top-links i:hover {
   cursor: pointer;
-  /* background-color:red;
-  border-radius: 10px;
-  background-clip: content-box; */
 }
 
 #top-buttom {
@@ -32,7 +29,6 @@
   background-color: #4485ed;
   border: hidden;
   border: solid 10px #4485ed;
-  /* font-weight: bold; */
   color: #ffff;
   font-size: 13px;
   height: 2.2rem;
@@ -94,7 +90,8 @@ img {
   margin-left: -0.5rem;
 }
 
-#camera-icon, #right-search-icon:hover {
+#camera-icon,
+#right-search-icon:hover {
   cursor: pointer;
 }
 
