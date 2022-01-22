@@ -1,0 +1,15 @@
+{% extends "tasks/layout.html" %}
+
+{% block body %}
+    <h1>Tasks</h1>
+        <ul>
+            {% for task, priority in tasks %}
+                <li> {{ task }} (Priority: {% for n in priority|get_range %} <i class="fas fa-star"></i> {% endfor %}) </li>
+            
+            {% empty %}
+                <li> No tasks</li>
+                
+            {% endfor %}
+        </ul>
+        <a href="{% url 'tasks:add' %}">Add new task</a>
+{% endblock %}
