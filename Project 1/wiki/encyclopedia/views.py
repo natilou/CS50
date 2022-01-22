@@ -1,4 +1,5 @@
-from django.shortcuts import render
+import random
+from django.shortcuts import redirect, render
 from django.http import Http404
 
 from . import util
@@ -20,3 +21,6 @@ def show_entry(request, title):
         raise Http404
 
 
+def random_entry(request):
+    entries = util.list_entries()
+    return redirect("show_entry", title=random.choice(entries)) 
