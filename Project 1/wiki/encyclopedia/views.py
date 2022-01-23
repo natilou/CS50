@@ -36,10 +36,10 @@ class NewPageForm(forms.Form):
     def clean_title(self):
         title = self.cleaned_data["title"]
         if util.get_entry(title):
-            raise ValidationError("An article with this title already exists.")
+            raise ValidationError("A entry with this title already exists.")
         return title
 
-def create_new_page(request): 
+def create_entry(request): 
     if request.method == "POST":
         form = NewPageForm(request.POST)
         if form.is_valid():
@@ -48,10 +48,10 @@ def create_new_page(request):
             util.save_entry(title, textarea)
             return HttpResponseRedirect(reverse('show_entry', kwargs={"title":title}))
         else:
-            return render(request, "encyclopedia/new_page.html", {
+            return render(request, "encyclopedia/new_entry.html", {
                 "form": form
             })
     
-    return render(request, "encyclopedia/new_page.html",{
+    return render(request, "encyclopedia/new_entry.html",{
         "form": NewPageForm()
     })
