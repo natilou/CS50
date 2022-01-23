@@ -1,7 +1,10 @@
 import random
-from django.shortcuts import redirect, render
-from django.http import Http404
 import markdown2
+from django.shortcuts import redirect, render
+from django.http import Http404, HttpResponseRedirect
+from django.urls import reverse
+from django import forms
+from django.core.exceptions import ValidationError
 
 from . import util
 
@@ -26,3 +29,29 @@ def random_entry(request):
     entries = util.list_entries()
     return redirect("show_entry", title=random.choice(entries))
 
+class NewPageForm(forms.Form):
+    title = forms.CharField(label="Title")
+    textarea = forms.CharField(widget=forms.Textarea,label="Information")
+    
+    def clean_title(self):
+        title = self.cleaned_data["title"]
+        if util.get_entry(title):
+            raise ValidationError("An article with this title already exists.")
+        return title
+
+def create_new_page(request): 
+    if request.method == "POST":
+        form = NewPageForm(request.POST)
+        if form.is_valid():
+            title = form.cleaned_data["title"]
+            textarea = form.cleaned_data["textarea"]
+            util.save_entry(title, textarea)
+            return HttpResponseRedirect(reverse('show_entry', kwargs={"title":title}))
+        else:
+            return render(request, "encyclopedia/new_page.html", {
+                "form": form
+            })
+    
+    return render(request, "encyclopedia/new_page.html",{
+        "form": NewPageForm()
+    })
