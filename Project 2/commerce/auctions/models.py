@@ -37,6 +37,8 @@ class Listing(models.Model):
             return "Closed"
         return "Active" 
 
+    #acá habría que agregar cómo el usuario cambia is_active?   
+
 
     def __str__(self) -> str:
         return f"{self.title}, starting bid: {self.starting_bid}, {self.category}, {self.status_label}"

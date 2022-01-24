@@ -1,9 +1,12 @@
+from locale import currency
+from pydoc import describe
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
-
+from django import forms
+from django.contrib.auth.decorators import login_required
 from .models import User
 
 
@@ -61,3 +64,32 @@ def register(request):
         return HttpResponseRedirect(reverse("index"))
     else:
         return render(request, "auctions/register.html")
+
+class CreateForm(forms.Form):
+    title = forms.CharField(label="Title")
+    description = forms.CharField(widget=forms.Textarea,label="Details", max_length=300)
+    starting_bid = forms.FloatField()
+    currency = forms.CharField(max_length=4)
+    url_img = forms.URLField(required=False)
+    category = forms.CharField(max_length=64, required=False)
+
+
+@login_required
+def new(request):
+    if request.method == "POST":
+        form = CreateForm(request.POST)
+        if form.is_valid:
+            title = form.cleaned_data["title"]
+            description = form.cleaned_data["description"]
+            starting_bid = form.cleaned_data["starting_bid"]
+            currency = form.cleaned_data["currency"]
+            url_img = form.cleaned_data["url_img"]
+            category = form.cleaned_data["category"]
+            return  HttpResponseRedirect(reverse('index'))
+        else:
+            return render(request, "auctions/new.html", {
+                "form": form
+            })
+    return render(request, "auctions/new.html", {
+        "form": CreateForm()
+    })
