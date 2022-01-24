@@ -55,3 +55,27 @@ def create_entry(request):
     return render(request, "encyclopedia/new_entry.html",{
         "form": NewPageForm()
     })
+
+class EditForm(forms.Form):
+      textarea = forms.CharField(widget=forms.Textarea,label="Information")
+    
+
+def edit_entry(request, title):
+    if request.method == "POST":
+        form = EditForm(request.POST)
+        if form.is_valid():
+            textarea= form.cleaned_data["textarea"]
+            util.save_entry(title, textarea)
+            return HttpResponseRedirect(reverse('show_entry', kwargs={"title":title}))
+        else:
+            return render(request, "encyclopedia/edit_entry.html", {
+                "title": title,
+                "form": form
+            })
+            
+    return render(request, "encyclopedia/edit_entry.html",{
+        "title": title, 
+        "form": EditForm({
+            "textarea": util.get_entry(title)
+            })
+    })
