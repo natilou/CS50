@@ -72,10 +72,31 @@ def edit_entry(request, title):
                 "title": title,
                 "form": form
             })
-            
+
     return render(request, "encyclopedia/edit_entry.html",{
         "title": title, 
         "form": EditForm({
             "textarea": util.get_entry(title)
             })
     })
+
+class Search(forms.Form):
+    q = forms.CharField()
+
+def search_entry(request):
+    if request.method == "POST":
+        form = Search(request.POST)
+        if form.is_valid():
+            title= form.cleaned_data["q"]
+            if util.get_entry(title):
+                return HttpResponseRedirect(reverse('show_entry', kwargs={"title":title}))
+            else:
+                results = []
+                for entry in util.list_entries():
+                    if title.lower() in entry.lower():
+                        results.append(entry)
+                return render(request, "encyclopedia/search_results.html", {
+                    "results": results,
+                })
+    return redirect("index")
+
