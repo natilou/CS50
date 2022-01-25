@@ -20,8 +20,8 @@ class Listing(models.Model):
     description = models.TextField(max_length=300)
     starting_price = models.FloatField()
     currency = models.CharField(max_length=4)
-    image_url = models.URLField()
-    category = models.CharField(max_length=64)
+    image_url = models.URLField(null=True, blank=True)
+    category = models.CharField(max_length=64, null=True, blank=True)
     is_active = models.BooleanField(default=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="listings")
 
@@ -35,7 +35,7 @@ class Listing(models.Model):
 
 
     def __str__(self) -> str:
-        return f"{self.title}, starting bid: {self.starting_bid}, {self.category}, {self.status_label}"
+        return f"{self.title}, starting bid: {self.starting_price}, {self.category}, {self.status_label}"
 
 
 class Comment(models.Model):
