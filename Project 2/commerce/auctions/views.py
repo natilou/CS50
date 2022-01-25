@@ -7,11 +7,13 @@ from django.shortcuts import render
 from django.urls import reverse
 from django import forms
 from django.contrib.auth.decorators import login_required
-from .models import User
+from .models import User, Listing, Bid, Comment
 
 
-def index(request):
-    return render(request, "auctions/index.html")
+def index(request): 
+    return render(request, "auctions/index.html", {
+        "listings": Listing.objects.filter(is_active = True) 
+    })
 
 
 def login_view(request):
@@ -68,9 +70,9 @@ def register(request):
 class CreateForm(forms.Form):
     title = forms.CharField(label="Title")
     description = forms.CharField(widget=forms.Textarea,label="Details", max_length=300)
-    starting_bid = forms.FloatField()
+    starting_price = forms.FloatField()
     currency = forms.CharField(max_length=4)
-    url_img = forms.URLField(required=False)
+    image_url = forms.URLField(required=False)
     category = forms.CharField(max_length=64, required=False)
 
 
@@ -81,9 +83,9 @@ def new(request):
         if form.is_valid:
             title = form.cleaned_data["title"]
             description = form.cleaned_data["description"]
-            starting_bid = form.cleaned_data["starting_bid"]
+            starting_price = form.cleaned_data["starting_price"]
             currency = form.cleaned_data["currency"]
-            url_img = form.cleaned_data["url_img"]
+            image_url = form.cleaned_data["image_url"]
             category = form.cleaned_data["category"]
             return  HttpResponseRedirect(reverse('index'))
         else:
