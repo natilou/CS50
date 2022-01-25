@@ -13,6 +13,9 @@ class Bid(models.Model):
 
     def __str__(self) -> str:
         return f"Amount: {self.currency} {self.amount}"
+    
+    def show_bid(self):
+        return self.amount
 
 
 class Listing(models.Model):
@@ -24,6 +27,7 @@ class Listing(models.Model):
     category = models.CharField(max_length=64, null=True, blank=True)
     is_active = models.BooleanField(default=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="listings")
+    current_price = models.FloatField()
 
     @property
     def status_label(self):
@@ -36,7 +40,12 @@ class Listing(models.Model):
 
     def __str__(self) -> str:
         return f"{self.title}, starting bid: {self.starting_price}, {self.category}, {self.status_label}"
-
+    
+    def change_price(self):
+        if Bid.show_bid():
+            self.current_price += Bid.amount
+        
+        return self.current_price
 
 class Comment(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="comments")
@@ -46,3 +55,8 @@ class Comment(models.Model):
 
     def __str__(self) -> str:
         return f"Comment by {self.user} at {self.created}"
+
+
+class Watchlist(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="watchlists")
+    listings = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name="watchlists")

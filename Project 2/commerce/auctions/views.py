@@ -7,7 +7,8 @@ from django.shortcuts import render
 from django.urls import reverse
 from django import forms
 from django.contrib.auth.decorators import login_required
-from .models import User, Listing, Bid, Comment
+from .models import User, Listing, Bid, Comment, Watchlist
+from django.shortcuts import get_object_or_404
 
 
 def index(request): 
@@ -74,19 +75,22 @@ class CreateForm(forms.Form):
     currency = forms.CharField(max_length=4)
     image_url = forms.URLField(required=False)
     category = forms.CharField(max_length=64, required=False)
+    current_price = starting_price
 
 
-@login_required
+@login_required  #cambiar a new_listing
 def new(request):
     if request.method == "POST":
         form = CreateForm(request.POST)
-        if form.is_valid:
+        if form.is_valid():
             title = form.cleaned_data["title"]
             description = form.cleaned_data["description"]
             starting_price = form.cleaned_data["starting_price"]
             currency = form.cleaned_data["currency"]
             image_url = form.cleaned_data["image_url"]
             category = form.cleaned_data["category"]
+            current_price = form.cleaned_data["current_price"]
+            Listing.objects.create(title=title, description=description,starting_price=starting_price, currency=currency, image_url=image_url, category=category, current_price=current_price, user=request.user)
             return  HttpResponseRedirect(reverse('index'))
         else:
             return render(request, "auctions/new.html", {
@@ -94,4 +98,31 @@ def new(request):
             })
     return render(request, "auctions/new.html", {
         "form": CreateForm()
+    })
+
+def listing(request, listing_id):
+    listing_page = Listing.objects.get(id=listing_id)
+    return render(request, "auctions/listing.html", {
+        "listing": listing_page
+    })
+
+
+@login_required
+def add_to_watchlist(request, listing_id):
+    listing = get_object_or_404(Listing, id=listing_id)
+    if not Watchlist.objects.filter(user=request.user, listings=listing).exists():
+        Watchlist.objects.create(user=request.user, listings=listing) 
+    return HttpResponseRedirect(reverse("show_watchlist"))
+
+@login_required
+def remove_listing(request, listing_id):
+    listing = get_object_or_404(Listing, id=listing_id)
+    if Watchlist.objects.filter(user=request.user, listings=listing).exists():
+       Watchlist.objects.filter(user=request.user, listings=listing).delete()
+    return HttpResponseRedirect(reverse("show_watchlist"))
+
+
+def show_watchlist(request):
+    return render(request, "auctions/watchlist.html", {
+        "listings": Listing.objects.filter(watchlists__user=request.user)
     })
