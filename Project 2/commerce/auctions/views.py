@@ -114,7 +114,8 @@ def listing(request, listing_id):
     return render(request, "auctions/listing.html", {
         "listing": listing_page, 
         "is_in_watchlist": is_in_watchlist, 
-        "comment_form": FormCreateComment() 
+        "comment_form": FormCreateComment(),
+        "comments": Comment.objects.filter(listing=listing_id) 
     })
 
 
@@ -169,12 +170,4 @@ def create_comment(request, listing_id):
         "comment_form": FormCreateComment(),
         "listing": listing,
         "comments": Comment.objects.filter(listing=listing)
-    })
-
-def show_comments(request, listing_id):
-    listing = get_object_or_404(Listing, id=listing_id)
-    return render(request, "auctions/listing.html", {
-        "comments": Comment.objects.filter(listing=listing), 
-        "listing": listing, 
-        "comment_form": FormCreateComment()
     })

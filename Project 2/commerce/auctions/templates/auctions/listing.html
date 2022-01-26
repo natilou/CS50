@@ -45,11 +45,14 @@
     
     <h3>Comments</h3>
     
-        <a href="{% url 'show_comments' listing_id=listing.id %}"> Show comments</a> 
+        {% if comments %}
             {% for comment in comments %}
                 <p>{{ comment.body }}. Comment by {{ comment.user }} at {{ comment.created }}</p>
-            {% endfor %}
+            {% endfor %} 
+        {% else %}
+            <p>No comments yet</p>
         
+        {% endif %}
 
 
 {% endblock %}
