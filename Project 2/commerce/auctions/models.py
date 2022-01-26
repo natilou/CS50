@@ -1,3 +1,4 @@
+from unicodedata import category
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from datetime import datetime
@@ -17,6 +18,11 @@ class Bid(models.Model):
     def show_bid(self):
         return self.amount
 
+class Category(models.Model):
+    name = models.CharField(max_length=64)
+
+    def __str__(self):
+        return self.name
 
 class Listing(models.Model):
     title = models.CharField(max_length=64)
@@ -24,10 +30,9 @@ class Listing(models.Model):
     starting_price = models.FloatField()
     currency = models.CharField(max_length=4)
     image_url = models.URLField(null=True, blank=True)
-    category = models.CharField(max_length=64, null=True, blank=True)
     is_active = models.BooleanField(default=True)
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="listings")
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="listings")
-    current_price = models.FloatField()
 
     @property
     def status_label(self):
@@ -41,11 +46,6 @@ class Listing(models.Model):
     def __str__(self) -> str:
         return f"{self.title}, starting bid: {self.starting_price}, {self.category}, {self.status_label}"
     
-    def change_price(self):
-        if Bid.show_bid():
-            self.current_price += Bid.amount
-        
-        return self.current_price
 
 class Comment(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="comments")

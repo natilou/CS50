@@ -21,10 +21,14 @@
 
 
     {% if user.is_authenticated %} 
-     
-                <a href="{% url 'remove_listing' listing_id=listing.id %}">Remove from watchlist</a>
-    
-                <a href="{% url 'add_to_watchlist' listing_id=listing.id %}">Add to watchlist!</a>
+
+        {% if is_in_watchlist %}     
+            <a href="{% url 'remove_listing' listing_id=listing.id %}">Remove from watchlist</a>
+
+        {% else %}
+            <a href="{% url 'add_to_watchlist' listing_id=listing.id %}">Add to watchlist!</a>
+        
+        {% endif %}
 
 
     {% endif %}
