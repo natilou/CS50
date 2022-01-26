@@ -109,7 +109,7 @@ def new_listing(request):
 def listing(request, listing_id):
     listing_page = Listing.objects.get(id=listing_id)
     is_in_watchlist = False
-    if request.user:
+    if request.user.is_authenticated:
         is_in_watchlist = Watchlist.objects.filter(user=request.user, listings=listing_page).exists()
     return render(request, "auctions/listing.html", {
         "listing": listing_page, 
@@ -133,7 +133,7 @@ def remove_listing(request, listing_id):
        Watchlist.objects.filter(user=request.user, listings=listing).delete()
     return HttpResponseRedirect(reverse("show_watchlist"))
 
-
+@login_required
 def show_watchlist(request):
     return render(request, "auctions/watchlist.html", {
         "listings": Listing.objects.filter(watchlists__user=request.user)
@@ -148,6 +148,7 @@ def show_categories(request):
 class FormCreateComment(forms.Form):
     body = forms.CharField(widget=forms.Textarea,label="Comment", max_length=300)
 
+@login_required
 def create_comment(request, listing_id):
     listing = get_object_or_404(Listing, id=listing_id)
     if request.method == "POST":
