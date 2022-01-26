@@ -1,7 +1,6 @@
-from unicodedata import category
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from datetime import datetime
+
 
 
 class User(AbstractUser):
@@ -51,10 +50,15 @@ class Comment(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="comments")
     body = models.TextField(max_length=200)
     listing = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name="comments")
-    created = models.DateTimeField(default=datetime.now)
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+    active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ('created',)
 
     def __str__(self) -> str:
-        return f"Comment by {self.user} at {self.created}"
+        return f"{self.body}. Commented by {self.user} at {self.created}"
 
 
 class Watchlist(models.Model):

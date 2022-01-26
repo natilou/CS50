@@ -2,6 +2,7 @@ from locale import currency
 from pydoc import describe
 from typing import List
 from unicodedata import category
+from django import http
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
@@ -76,7 +77,7 @@ def register(request):
         return render(request, "auctions/register.html")
 
 
-class CreateForm(forms.Form):
+class FormCreateListing(forms.Form):
     title = forms.CharField(label="Title")
     description = forms.CharField(widget=forms.Textarea,label="Details", max_length=300)
     starting_price = forms.FloatField()
@@ -84,10 +85,10 @@ class CreateForm(forms.Form):
     image_url = forms.URLField(required=False)
     category = forms.ModelChoiceField(queryset=Category.objects.all())
 
-@login_required  #cambiar a new_listing
-def new(request):
+@login_required 
+def new_listing(request):
     if request.method == "POST":
-        form = CreateForm(request.POST)
+        form = FormCreateListing(request.POST)
         if form.is_valid():
             title = form.cleaned_data["title"]
             description = form.cleaned_data["description"]
@@ -102,7 +103,7 @@ def new(request):
                 "form": form
             })
     return render(request, "auctions/new.html", {
-        "form": CreateForm()
+        "form": FormCreateListing()
     })
 
 def listing(request, listing_id):
@@ -112,7 +113,8 @@ def listing(request, listing_id):
         is_in_watchlist = Watchlist.objects.filter(user=request.user, listings=listing_page).exists()
     return render(request, "auctions/listing.html", {
         "listing": listing_page, 
-        "is_in_watchlist": is_in_watchlist
+        "is_in_watchlist": is_in_watchlist, 
+        "comment_form": FormCreateComment() 
     })
 
 
@@ -140,4 +142,39 @@ def show_categories(request):
     return render(request, "auctions/show_categories.html", {
         "categories": Category.objects.all()
     })
-    
+
+
+class FormCreateComment(forms.Form):
+    body = forms.CharField(widget=forms.Textarea,label="Comment", max_length=300)
+
+def create_comment(request, listing_id):
+    listing = get_object_or_404(Listing, id=listing_id)
+    if request.method == "POST":
+        form = FormCreateComment(data=request.POST)
+        if form.is_valid():
+            body = form.cleaned_data["body"]
+            Comment.objects.create(body=body, user=request.user, listing=listing)
+            return render(request, "auctions/listing.html", {
+                "listing": listing,
+                "comment_form": FormCreateComment(),
+                "comments": Comment.objects.filter(listing=listing)
+            })
+        else:
+            return render(request, "auctions/listing.html", {
+            "comment_form": form,
+            "listing": listing,
+            "comments": Comment.objects.filter(listing=listing)
+            })
+    return render(request, "auctions/listing.html", {
+        "comment_form": FormCreateComment(),
+        "listing": listing,
+        "comments": Comment.objects.filter(listing=listing)
+    })
+
+def show_comments(request, listing_id):
+    listing = get_object_or_404(Listing, id=listing_id)
+    return render(request, "auctions/listing.html", {
+        "comments": Comment.objects.filter(listing=listing), 
+        "listing": listing, 
+        "comment_form": FormCreateComment()
+    })
