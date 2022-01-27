@@ -7,7 +7,7 @@ from django import http
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.urls import reverse
 from django import forms
 from django.contrib.auth.decorators import login_required
@@ -117,7 +117,7 @@ def listing(request, listing_id):
         "is_in_watchlist": is_in_watchlist, 
         "comment_form": FormCreateComment(),
         "comments": Comment.objects.filter(listing=listing_id),
-        "bid_form": FormCreateBid()
+        "bid_form": FormCreateBid(),
     })
 
 
@@ -187,7 +187,7 @@ def create_bid(request, listing_id):
         if bid_form.is_valid():
             amount = bid_form.cleaned_data["amount"]
             currency = bid_form.cleaned_data["currency"]
-            if currency == listing.currency and (amount > listing.current_price):
+            if currency == listing.currency and amount > listing.current_price:
                 messages.success(request, f"You just made a bid for {currency} {amount}")
                 Bid.objects.create(amount=amount, currency=currency, user=request.user, listing=listing)
                 return render(request, "auctions/listing.html", {
@@ -239,3 +239,6 @@ def show_my_bids(request):
     return render(request, "auctions/my_bids.html", {
         "bids": Bid.objects.filter(user=request.user),
     })
+
+
+

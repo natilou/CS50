@@ -32,10 +32,17 @@ class Listing(models.Model):
 
     @property
     def current_price(self):
-        max_amount = Bid.objects.filter(listing=self).aggregate(Max("amount"))
+        max_amount = Bid.objects.filter(listing=self).aggregate(Max("amount")).get('amount__max')
         if max_amount:
-            return max_amount["amount__max"]
-        return self.starting_price          
+            return max_amount
+        return self.starting_price      
+
+    @property
+    def bid_winner(self):
+        last_bid = Bid.objects.filter(listing_id=self).last()
+        if self.status_label == "Closed":
+            return last_bid.user
+    
 
     def __str__(self) -> str:
         return f"{self.title}, starting bid: {self.starting_price}, {self.category}, {self.status_label}"

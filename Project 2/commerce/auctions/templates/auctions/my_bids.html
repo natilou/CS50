@@ -13,7 +13,7 @@
     <ul>
         {% for bid in bids %}
         <li>
-            <a href="{% url 'listing' listing_id=bid.listing_id %}">{{bid.listing.title}} (Status: {{ bid.listing.status_label }})</a>, bid made: {{ bid.currency }} {{bid.amount}}
+            <a href="{% url 'listing' listing_id=bid.listing_id %}">{{bid.listing.title}} (Status: {{ bid.listing.status_label }})</a>, bid made: {{ bid.currency }} {{bid.amount}}.
         </li>
         {% endfor %}
 

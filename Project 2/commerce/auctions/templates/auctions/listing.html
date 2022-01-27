@@ -22,6 +22,14 @@
 
         <p>Current price: {{ listing.currency }} {{ listing.current_price}}</p>
 
+        <p>Status: {{ listing.status_label }}</p>
+
+    <!-- Section: Show bidder winner if listing is closed -->
+        {% if user.is_authenticated and user.id == listing.bid_winner.id %}
+            <h2>Bid winner: {{listing.bid_winner }}, you won this listing!</h2>
+        {% endif %}
+
+
     <!--Section: Add or Remove to Watchlist -->
     {% if user.is_authenticated %} 
 
@@ -87,6 +95,7 @@
                 <a href="{% url 'close_listing' listing_id=listing.id %}">Close this listing</a>
             {% endif %}
         {% endif %}
+
 
 
 {% endblock %}
