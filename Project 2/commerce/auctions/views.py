@@ -2,6 +2,7 @@ from locale import currency
 from pydoc import describe
 from typing import List
 from unicodedata import category
+from webbrowser import get
 from django import http
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
@@ -12,7 +13,7 @@ from django import forms
 from django.contrib.auth.decorators import login_required
 from .models import Category, User, Listing, Bid, Comment, Watchlist
 from django.shortcuts import get_object_or_404
-
+from django.contrib import messages
 
 def index(request):
     listings =  Listing.objects.filter(is_active = True) 
@@ -115,7 +116,8 @@ def listing(request, listing_id):
         "listing": listing_page, 
         "is_in_watchlist": is_in_watchlist, 
         "comment_form": FormCreateComment(),
-        "comments": Comment.objects.filter(listing=listing_id) 
+        "comments": Comment.objects.filter(listing=listing_id),
+        "bid_form": FormCreateBid()
     })
 
 
@@ -171,4 +173,63 @@ def create_comment(request, listing_id):
         "comment_form": FormCreateComment(),
         "listing": listing,
         "comments": Comment.objects.filter(listing=listing)
+    })
+
+class FormCreateBid(forms.Form):
+    amount = forms.FloatField()
+    currency = forms.CharField(max_length=4)
+
+@login_required
+def create_bid(request, listing_id):
+    listing = get_object_or_404(Listing, id=listing_id)
+    if request.method == "POST":
+        bid_form = FormCreateBid(data=request.POST)
+        if bid_form.is_valid():
+            amount = bid_form.cleaned_data["amount"]
+            currency = bid_form.cleaned_data["currency"]
+            if currency == listing.currency and (amount > listing.current_price):
+                messages.success(request, f"You just made a bid for {currency} {amount}")
+                Bid.objects.create(amount=amount, currency=currency, user=request.user, listing=listing)
+                return render(request, "auctions/listing.html", {
+                "listing": listing,
+                "comment_form": FormCreateComment(),
+                "comments": Comment.objects.filter(listing=listing),
+                "bid_form": FormCreateBid()
+                })
+            else:
+                messages.error(request, "The bid must be higher or the currency must be the same as the listing")
+                return render(request, "auctions/listing.html", {
+                "listing": listing,
+                "comment_form": FormCreateComment(),
+                "comments": Comment.objects.filter(listing=listing), 
+                "bid_form": bid_form
+            })
+        else:
+            return render(request, "auctions/listing.html", {
+                "listing": listing,
+                "comment_form": FormCreateComment(),
+                "comments": Comment.objects.filter(listing=listing), 
+                "bid_form": bid_form
+            })
+    return render(request, "auctions/listing.html", {
+        "comment_form": FormCreateComment(),
+        "listing": listing,
+        "comments": Comment.objects.filter(listing=listing),
+        "bid_form": FormCreateBid()
+    })
+
+
+@login_required
+def close_listing(request, listing_id):
+    listing = get_object_or_404(Listing, id=listing_id)
+    if Listing.objects.filter(user=request.user, id=listing_id, is_active=True).exists():
+       listing.is_active = False
+       listing.save()
+    return HttpResponseRedirect(reverse("listing", kwargs={"listing_id": listing_id}))
+
+
+@login_required
+def show_my_listings(request):
+    return render(request, "auctions/my_listings.html", {
+        "my_listings": Listing.objects.filter(user=request.user)
     })

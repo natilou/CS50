@@ -1,0 +1,26 @@
+{% extends "auctions/layout.html" %}
+
+{% block title %}
+    My listings
+{% endblock %}
+
+{% block body %}
+
+    <h2>Created Listings</h2>
+    
+    {% if user.is_authenticated %} 
+
+    <ul>
+        {% for listing in my_listings %}
+        <li>
+            <a href="{% url 'listing' listing.id %}"> {{listing.title}}, Details: {{listing.description}}, Current price: {{ listing.current_price }}, Status: {{ listing.status_label }}</a>
+        </li>
+        {% endfor %}
+
+    </ul>
+    
+    {% endif %}
+
+    
+
+{% endblock %}

@@ -7,6 +7,7 @@
 {% block body %}
 
     <h1>{{ listing.title }}</h1>
+        <p> Created by {{ listing.user }} </p>
         <p>Details: {{ listing.description }}</p>
         
         {% if listing.image_url %}
@@ -17,9 +18,11 @@
             <p>Category: {{ listing.category }}</p>
         {% endif %}
 
+        <p>Starting price: {{ listing.currency }} {{ listing.starting_price}}</p>
+
         <p>Current price: {{ listing.currency }} {{ listing.current_price}}</p>
 
-
+    <!--Section: Add or Remove to Watchlist -->
     {% if user.is_authenticated %} 
 
         {% if is_in_watchlist %}     
@@ -33,6 +36,29 @@
 
     {% endif %}
 
+    <!--Section: Make a bid -->
+    {% if user.is_authenticated %}
+
+    <h3>Make a bid </h3>
+        <form action="{% url 'create_bid' listing_id=listing.id %}" method="post">
+            {% csrf_token %}
+            {{ bid_form }}
+            <input type="submit" value="Bid">
+        </form>
+
+        {% if messages %}
+            <ul>
+                {% for message in messages %}
+                    <li> {{ message }} </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+
+    {% endif %}
+
+
+    <!--Section: Make a comment -->
     {% if user.is_authenticated %}
         <h3>Make a comment for this listing</h3>
             <form action="{% url 'create_comment' listing_id=listing.id %}" method="post">
@@ -41,8 +67,8 @@
                 <input type="submit" value="submit">
             </form>
     {% endif %}
-    
-    
+
+  
     <h3>Comments</h3>
     
         {% if comments %}
@@ -52,6 +78,14 @@
         {% else %}
             <p>No comments yet</p>
         
+        {% endif %}
+    
+
+    <!--Section: Close listing -->
+        {% if user.is_authenticated and user.id == listing.user_id %}
+            {% if listing.is_active %}
+                <a href="{% url 'close_listing' listing_id=listing.id %}">Close this listing</a>
+            {% endif %}
         {% endif %}
 
 

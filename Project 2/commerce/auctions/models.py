@@ -1,21 +1,12 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.db.models import Max
 
 
 
 class User(AbstractUser):
     pass
 
-class Bid(models.Model):
-    amount = models.FloatField()
-    currency = models.CharField(max_length=4)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="bids") 
-
-    def __str__(self) -> str:
-        return f"Amount: {self.currency} {self.amount}"
-    
-    def show_bid(self):
-        return self.amount
 
 class Category(models.Model):
     name = models.CharField(max_length=64)
@@ -39,12 +30,26 @@ class Listing(models.Model):
             return "Closed"
         return "Active" 
 
-    #acá habría que agregar cómo el usuario cambia is_active?   
-
+    @property
+    def current_price(self):
+        max_amount = Bid.objects.filter(listing=self).aggregate(Max("amount"))
+        if max_amount:
+            return max_amount["amount__max"]
+        return self.starting_price          
 
     def __str__(self) -> str:
         return f"{self.title}, starting bid: {self.starting_price}, {self.category}, {self.status_label}"
+
     
+class Bid(models.Model):
+    amount = models.FloatField()
+    currency = models.CharField(max_length=4)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="bids") 
+    listing = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name="bids")
+
+    def __str__(self) -> str:
+        return f"Amount: {self.currency} {self.amount}"
+
 
 class Comment(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="comments")
