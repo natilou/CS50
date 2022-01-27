@@ -37,7 +37,7 @@
     {% endif %}
 
     <!--Section: Make a bid -->
-    {% if user.is_authenticated %}
+    {% if user.is_authenticated and user.id != listing.user_id %}
 
     <h3>Make a bid </h3>
         <form action="{% url 'create_bid' listing_id=listing.id %}" method="post">

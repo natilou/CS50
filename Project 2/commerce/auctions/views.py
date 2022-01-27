@@ -233,3 +233,9 @@ def show_my_listings(request):
     return render(request, "auctions/my_listings.html", {
         "my_listings": Listing.objects.filter(user=request.user)
     })
+
+@login_required
+def show_my_bids(request):
+    return render(request, "auctions/my_bids.html", {
+        "bids": Bid.objects.filter(user=request.user),
+    })
