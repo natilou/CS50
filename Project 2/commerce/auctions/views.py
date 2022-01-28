@@ -187,7 +187,7 @@ def create_bid(request, listing_id):
         if bid_form.is_valid():
             amount = bid_form.cleaned_data["amount"]
             currency = bid_form.cleaned_data["currency"]
-            if currency == listing.currency and amount > listing.current_price:
+            if currency == listing.currency and amount > listing.current_price and listing.is_active:
                 messages.success(request, f"You just made a bid for {currency} {amount}")
                 Bid.objects.create(amount=amount, currency=currency, user=request.user, listing=listing)
                 return render(request, "auctions/listing.html", {

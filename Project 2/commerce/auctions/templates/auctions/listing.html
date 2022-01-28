@@ -45,7 +45,7 @@
     {% endif %}
 
     <!--Section: Make a bid -->
-    {% if user.is_authenticated and user.id != listing.user_id %}
+    {% if user.is_authenticated and user.id != listing.user_id and listing.is_active %}
 
     <h3>Make a bid </h3>
         <form action="{% url 'create_bid' listing_id=listing.id %}" method="post">
@@ -67,7 +67,7 @@
 
 
     <!--Section: Make a comment -->
-    {% if user.is_authenticated %}
+    {% if user.is_authenticated and listing.is_active %}
         <h3>Make a comment for this listing</h3>
             <form action="{% url 'create_comment' listing_id=listing.id %}" method="post">
                 {% csrf_token %}
