@@ -55,7 +55,7 @@ class Bid(models.Model):
     listing = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name="bids")
 
     def __str__(self) -> str:
-        return f"Amount: {self.currency} {self.amount}"
+        return f"Amount: {self.currency} {self.amount} by {self.user}"
 
 
 class Comment(models.Model):

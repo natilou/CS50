@@ -87,7 +87,11 @@
             <p>No comments yet</p>
         
         {% endif %}
-    
+
+    <!-- Section: Bids received -->
+        {% if user.is_authenticated and user.id == listing.user_id %}
+            <a href="{% url 'show_bids_received' listing_id=listing.id %}">Watch bids received</a>
+        {% endif %}
 
     <!--Section: Close listing -->
         {% if user.is_authenticated and user.id == listing.user_id %}

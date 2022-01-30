@@ -236,9 +236,26 @@ def show_my_listings(request):
 
 @login_required
 def show_my_bids(request):
+    bids = Bid.objects.filter(user=request.user).order_by('-amount')
+    max_bid_per_listing = {}
+ 
+    for bid in bids:
+        if bid.listing_id not in max_bid_per_listing:
+            max_bid_per_listing[bid.listing_id] = bid
+
     return render(request, "auctions/my_bids.html", {
-        "bids": Bid.objects.filter(user=request.user),
+        "bids": list(max_bid_per_listing.values())
     })
 
+
+
+@login_required
+def show_bids_received(request, listing_id):
+    listing = get_object_or_404(Listing, id=listing_id)
+    bids_received = Bid.objects.filter(listing_id=listing.id).order_by('-amount')
+    return render(request, "auctions/bids_received.html", {
+        "bids": bids_received, 
+        "listing": listing
+    } )
 
 

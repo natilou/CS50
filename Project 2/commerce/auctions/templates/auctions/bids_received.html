@@ -1,0 +1,18 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+    {% if bids %}   
+        <h2>Bids received for {{ listing.title }}</h2>
+       
+            <ul>
+                {% for bid in bids %}
+                <li>
+                    {{ bid }}
+                </li>
+                {% endfor %}
+            </ul> 
+    {% else %}
+        <h2>No bids received for {{ listing.title }} yet </h2>
+    {% endif %}
+   
+{% endblock %}
