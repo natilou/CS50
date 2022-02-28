@@ -78,24 +78,34 @@ function show_mails(email, mailbox) {
   // div each mail
   let user;
   const mail = document.createElement("div");
-  mail.className = "mail-row";
-  if (mailbox === "inbox") {
+  mail.className = "row";
+
+  const buttonColumn = document.createElement("div");
+  buttonColumn.className = "col-2";
+
+  if (mailbox === "inbox" || mailbox === "archive") {
     user = email.sender;
   } else if (mailbox === "sent") {
     user = email.recipients;
   }
-  mail.innerHTML = `<div>${user} ${email.subject} ${email.timestamp}</div>`;
+  mail.innerHTML = `
+  <div class="col-3" id="user-div">${user}</div>
+  <div class="col-4">${email.subject}</div>
+  <div class="col-3">${email.timestamp}</div>`;
   document.querySelector("#emails-view").append(mail);
   mail.style.color = "black";
-  mail.style.textDecoration = "none";
+  mail.append(buttonColumn);
 
-
-  if ((mailbox === "inbox") && (email.read)) {
+  // button unread mail
+  if (
+    (mailbox === "inbox" && email.read) ||
+    (mailbox === "archive" && email.read)
+  ) {
     const readButton = document.createElement("button");
-    readButton.id = "read-button"
-    readButton.className="btn btn-sm btn-outline-primary"
-    readButton.innerHTML = "Unread"
-    document.querySelector("#emails-view").append(readButton);
+    readButton.id = "read-button";
+    readButton.className = "btn btn-sm btn-outline-primary";
+    readButton.innerHTML = "Unread";
+    buttonColumn.append(readButton);
 
     readButton.addEventListener("click", () => {
       fetch(`emails/${email.id}`, {
@@ -103,18 +113,16 @@ function show_mails(email, mailbox) {
         body: JSON.stringify({
           read: false,
         }),
-      })
-      .then((result) => {
-          console.log(result);
-          load_mailbox("inbox");
-        });
+      }).then((result) => {
+        console.log(result);
+        load_mailbox("inbox");
+      });
     });
   }
 
-
   //click on email to read it
 
-  mail.addEventListener("click", () => {
+  mail.querySelector("#user-div").addEventListener("click", () => {
     console.log(email.id);
     single_email(`${email.id}`);
   });
@@ -124,6 +132,18 @@ function show_mails(email, mailbox) {
     mail.style.backgroundColor = "white";
   } else {
     mail.style.backgroundColor = "#f4f4f5";
+  }
+
+  // archive mail
+  if (mailbox === "inbox" || mailbox === "archive") {
+    const archiveButton = document.createElement("button");
+    archiveButton.className = "btn btn-sm btn-outline-primary";
+    archiveButton.innerHTML = `${email.archived ? "Unarchived" : "Archive"}`;
+    buttonColumn.append(archiveButton);
+
+    archiveButton.addEventListener("click", () => {
+      archive_email(email);
+    });
   }
 }
 
@@ -145,8 +165,7 @@ function single_email(email_id) {
     <div>Time: ${email.timestamp} </div>
     <div> ${email.body} </div>
     `;
-    })
-        
+    });
 
   return false;
 }
@@ -163,11 +182,26 @@ function read_email(email_id) {
 
 // change archive status
 
-function archive_email(email_id) {
-  fetch(`/emails/${email_id}`, {
-    method: "PUT",
-    body: JSON.stringify({
-      archived: true,
-    }),
-  });
+function archive_email(email) {
+  if (!email.archived) {
+    fetch(`/emails/${email.id}`, {
+      method: "PUT",
+      body: JSON.stringify({
+        archived: true,
+      }),
+    }).then((result) => {
+      console.log(result);
+      load_mailbox("inbox");
+    });
+  } else {
+    fetch(`/emails/${email.id}`, {
+      method: "PUT",
+      body: JSON.stringify({
+        archived: false,
+      }),
+    }).then((result) => {
+      console.log(result);
+      load_mailbox("inbox");
+    });
+  }
 }
