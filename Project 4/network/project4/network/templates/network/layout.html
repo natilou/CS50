@@ -20,8 +20,8 @@
                     </li>
                 {% endif %}
                 <li class="nav-item">
-                  <a class="nav-link" href="{% url 'index' %}">All Posts</a>
-                </li>
+                  <a class="nav-link" href="{% url 'posts' %}" id="all-posts">All Posts</a>
+                
                 {% if user.is_authenticated %}
                     <li class="nav-item">
                         <a class="nav-link" href="#">Following</a>
@@ -45,5 +45,6 @@
             {% block body %}
             {% endblock %}
         </div>
+        <script src="{% static 'network/app.js' %}"></script>
     </body>
 </html>

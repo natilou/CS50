@@ -1,14 +1,26 @@
+import json
+from pydoc import classname
+from unittest.util import _MAX_LENGTH
+from urllib import request
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
+from django.contrib.auth.decorators import login_required
+from django import forms
+from .models import User, Post, Comment
+from django.core import serializers
 
-from .models import User
 
 
 def index(request):
-    return render(request, "network/index.html")
+    if request.user.is_authenticated:
+        return render(request, "network/index.html", {
+            "form": FormNewPost()
+        })
+    else:
+        return render(request, "network/index.html")
 
 
 def login_view(request):
@@ -61,3 +73,34 @@ def register(request):
         return HttpResponseRedirect(reverse("index"))
     else:
         return render(request, "network/register.html")
+
+class FormNewPost(forms.Form):
+    content = forms.CharField(widget=forms.Textarea(attrs={'class': "form-control"}), max_length=200, label="")
+
+@login_required 
+def create_new_post(request):
+    if request.method == "POST":
+        form = FormNewPost(request.POST)
+        if form.is_valid():
+            content = form.cleaned_data["content"]
+            Post.objects.create(user=request.user, content=content)
+            return HttpResponseRedirect(reverse('index'))
+        else:
+            return HttpResponseRedirect(reverse('index'), {
+                "form": form
+            })
+    return HttpResponseRedirect(reverse('index'), {
+                "form": FormNewPost()
+     })
+
+def get_posts(request):
+    posts = Post.objects.order_by("-created").all()
+    posts_list = serializers.serialize('json', posts)
+    return HttpResponse(posts_list, content_type="text/json-comment-filtered")
+
+
+def load_posts(request):
+    return render(request, "network/all-posts.html")
+
+
+
