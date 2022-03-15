@@ -12,6 +12,16 @@ class Post(models.Model):
     updated = models.DateTimeField(auto_now_add=True)
     likes = models.IntegerField(default=0)
 
+    def serialize(self):
+        return {
+            "id": self.id,
+            "user": self.user.username,
+            "content": self.content,
+            "created": self.created.strftime("%b %d %Y, %I:%M %p"),
+            "updated": self.updated.strftime("%b %d %Y, %I:%M %p"),
+            "likes": self.likes
+        }
+
 class Comment(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="comments")
     content = models.TextField(max_length=100)

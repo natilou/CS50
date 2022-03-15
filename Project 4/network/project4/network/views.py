@@ -10,9 +10,7 @@ from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django import forms
 from .models import User, Post, Comment
-from django.core import serializers
-
-
+# from django.core import serializers
 
 def index(request):
     if request.user.is_authenticated:
@@ -93,10 +91,14 @@ def create_new_post(request):
                 "form": FormNewPost()
      })
 
+
+
+
 def get_posts(request):
     posts = Post.objects.order_by("-created").all()
-    posts_list = serializers.serialize('json', posts)
-    return HttpResponse(posts_list, content_type="text/json-comment-filtered")
+    #serializers.serialize('json', posts)
+    # return HttpResponse(posts_list, content_type="text/json-comment-filtered")
+    return JsonResponse([post.serialize() for post in posts], safe=False)
 
 
 def load_posts(request):

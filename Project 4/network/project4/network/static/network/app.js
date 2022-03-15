@@ -15,14 +15,23 @@ function loadPosts(post){
     console.log(post)
     const postDiv = document.createElement('div');
     postDiv.className = "card";
-    postDiv.innerHTML = `<div class="card-header"><strong>${post.fields.user}</strong></div>
+    postDiv.style.margin = "10px";
+    postDiv.innerHTML = `<div class="card-header">
+        <div class="container">
+            <div class="row">
+                <div class="col-9"><strong>${post.user}</strong></div>
+                <div class="col-3">${post.created}</div>
+            </div>
+        </div>
+    </div>
     <div class="card-body">
         <div> 
-            <h5 class="card-title">${post.fields.content}
-            <span><small>Published at ${post.fields.created}</small></span>
+            <h5 class="card-title">${post.content}
+
         </div>
-        <p class="card-text">Likes ${post.fields.likes}</p>
+        <p class="card-text">Likes ${post.likes}</p>
+        
     </div>`;
 
-    document.querySelector(".container").append(postDiv); 
+    document.querySelector(".container-xl").append(postDiv); 
 }

@@ -3,6 +3,7 @@
 {% block body %}
 <div class="container">
     <h1>All Posts</h1>
+    {% if user.is_authenticated %}
     <div id="form-div">
         <h3 id="title">New Post</h3>
         <form id="post-form" action="{% url 'new-post' %}" method="post">
@@ -11,10 +12,14 @@
             <input type="submit" value="Post" class="btn btn-outline-secondary">
         </form>
     </div>
+    {% endif %}
+    {% if user.is_authenticated %}
     <div id="my-posts">
+        
         <h2>My posts</h2>
 
     </div>
+    {% endif %}
 </div>
   
     
