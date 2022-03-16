@@ -4,13 +4,13 @@ from unittest.util import _MAX_LENGTH
 from urllib import request
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
-from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse, QueryDict
 from django.shortcuts import render
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django import forms
 from .models import User, Post, Comment
-# from django.core import serializers
+from django.core import serializers
 
 def index(request):
     if request.user.is_authenticated:
@@ -91,9 +91,6 @@ def create_new_post(request):
                 "form": FormNewPost()
      })
 
-
-
-
 def get_posts(request):
     posts = Post.objects.order_by("-created").all()
     #serializers.serialize('json', posts)
@@ -105,4 +102,11 @@ def load_posts(request):
     return render(request, "network/all-posts.html")
 
 
+def get_user_posts(request):
+    user_posts = Post.objects.filter(user=request.user).order_by("-created")
+    return JsonResponse([post.serialize() for post in user_posts], safe=False)
+    
+@login_required
+def profile(request):
+    return render(request, "network/profile.html")
 
