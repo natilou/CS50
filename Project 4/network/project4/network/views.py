@@ -4,18 +4,18 @@ from unittest.util import _MAX_LENGTH
 from urllib import request
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
-from django.http import HttpResponse, HttpResponseRedirect, JsonResponse, QueryDict
-from django.shortcuts import render
+from django.http import HttpRequest, HttpResponse, HttpResponseRedirect, JsonResponse, QueryDict
+from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django import forms
-from .models import User, Post, Comment
-from django.core import serializers
+from .models import User, Post, Comment, Following
+from django.shortcuts import get_object_or_404
 
 def index(request):
     if request.user.is_authenticated:
         return render(request, "network/index.html", {
-            "form": FormNewPost()
+            "form": FormNewPost(),
         })
     else:
         return render(request, "network/index.html")
@@ -101,12 +101,24 @@ def get_posts(request):
 def load_posts(request):
     return render(request, "network/all-posts.html")
 
-
-def get_user_posts(request):
-    user_posts = Post.objects.filter(user=request.user).order_by("-created")
-    return JsonResponse([post.serialize() for post in user_posts], safe=False)
     
 @login_required
-def profile(request):
-    return render(request, "network/profile.html")
+def profile(request, user_id): 
+    profile_user = get_object_or_404(User, id=user_id)
+    get_user_posts(request, user_id)
+    return render(request, "network/profile.html", {
+        "profile_user": profile_user, 
+    })
+
+def get_user_posts(request, user_id):
+    user_posts = Post.objects.filter(user=user_id).order_by("-created")
+    return JsonResponse([post.serialize() for post in user_posts], safe=False)
+
+def get_followers(request, user_id):
+    followers = Following.objects.filter(followee=user_id)
+    return JsonResponse([follower.serialize() for follower in followers], safe=False)
+
+
+
+
 

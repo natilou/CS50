@@ -3,7 +3,17 @@ from django.db import models
 
 
 class User(AbstractUser):
-    pass
+
+    @property
+    def followers(self):
+        total_followers = Following.objects.filter(followee=self).count()
+        return total_followers
+    
+    @property
+    def followees(self):
+        total_followees = Following.objects.filter(follower=self).count()
+        return total_followees
+
 
 class Post(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="posts")
@@ -16,11 +26,13 @@ class Post(models.Model):
         return {
             "id": self.id,
             "user": self.user.username,
+            "user_id": self.user.id,
             "content": self.content,
             "created": self.created.strftime("%b %d %Y, %I:%M %p"),
             "updated": self.updated.strftime("%b %d %Y, %I:%M %p"),
             "likes": self.likes
         }
+
 
 class Comment(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="comments")
@@ -29,3 +41,16 @@ class Comment(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="comments")
 
 
+class Following(models.Model):
+    follower = models.ForeignKey(User, on_delete=models.CASCADE, related_name="follower")
+    followee = models.ForeignKey(User, on_delete=models.CASCADE, related_name="followee")
+
+    class Meta:
+        unique_together = ['follower', 'followee']
+    
+    def serialize(self):
+        return {
+            "follower": self.follower.username, 
+            "followee": self.followee.username
+        }
+    
