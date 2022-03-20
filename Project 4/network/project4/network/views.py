@@ -139,8 +139,15 @@ def unfollow_user(request, user_id):
 
 def get_followers(request, user_id):
     user_profile = get_object_or_404(User, id=user_id)
-    followers = user_profile.followers
-    return JsonResponse({"followers": followers}, safe=False)
+    return JsonResponse({"num_followers": user_profile.num_followers}, safe=False)
 
+@login_required
+def get_posts_from_followees(request):
+    posts = Post.objects.filter(
+        user__followees__follower=request.user
+    ).order_by("-created")
+    return JsonResponse([post.serialize() for post in posts], safe=False)
 
-
+# @login_required
+# def load_posts_followees(request):
+#     return render(request, "network/posts-followees.html")

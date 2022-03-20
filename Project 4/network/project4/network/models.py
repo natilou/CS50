@@ -5,12 +5,12 @@ from django.db import models
 class User(AbstractUser):
 
     @property
-    def followers(self):
+    def num_followers(self):
         total_followers = Following.objects.filter(followee=self).count()
         return total_followers
     
     @property
-    def followees(self):
+    def num_followees(self):
         total_followees = Following.objects.filter(follower=self).count()
         return total_followees
 
@@ -42,8 +42,8 @@ class Comment(models.Model):
 
 
 class Following(models.Model):
-    follower = models.ForeignKey(User, on_delete=models.CASCADE, related_name="follower")
-    followee = models.ForeignKey(User, on_delete=models.CASCADE, related_name="followee")
+    follower = models.ForeignKey(User, on_delete=models.CASCADE, related_name="followers")
+    followee = models.ForeignKey(User, on_delete=models.CASCADE, related_name="followees")
 
     class Meta:
         unique_together = ['follower', 'followee']
