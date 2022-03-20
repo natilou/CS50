@@ -148,6 +148,6 @@ def get_posts_from_followees(request):
     ).order_by("-created")
     return JsonResponse([post.serialize() for post in posts], safe=False)
 
-# @login_required
-# def load_posts_followees(request):
-#     return render(request, "network/posts-followees.html")
+@login_required
+def load_posts_followees(request):
+    return render(request, "network/posts-followees.html")
