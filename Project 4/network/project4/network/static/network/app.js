@@ -1,5 +1,18 @@
-
-
+function getCookie(name) {
+    var cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        var cookies = document.cookie.split(';');
+        for (var i = 0; i < cookies.length; i++) {
+            var cookie = cookies[i].trim()
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
 document.addEventListener("DOMContentLoaded", function() {
     // fetch a api con todos los posts de todos los usuarios
     fetch("http://127.0.0.1:8000/api/posts")
@@ -26,19 +39,13 @@ document.addEventListener("DOMContentLoaded", function() {
     }),
 
     document.addEventListener("DOMContentLoaded", function(){
-        const userid = document.getElementById("js-user-id").value
-        fetch(`http://127.0.0.1:8000/${userid}/api/followers`)
+        const userid = document.getElementById("js-user-id").value;
+        fetch(`http://127.0.0.1:8000/${userid}/api/is-following`)
             .then(response=>response.json())
-            .then(followers => {
-                if(followers.length === 0){
-                    let emptyFollowers = [{"follower": null, "followee": document.getElementById("js-user-username").value}]
-                    changeFollowButton(emptyFollowers);
-                } else {
-                    followers.forEach((follower)=> {
-                        changeFollowButton(follower);})
-                }
-            })
-    })
+            .then(following => { 
+                changeFollowButton(following.is_following);
+             })
+    }), 
 )
 
 
@@ -99,8 +106,60 @@ function loadUserPosts(post){
     document.querySelector("#profile-container").append(userDivPost);
 }
 
-function changeFollowButton(follower){
-    const loggedUser = document.getElementById("js-logged-user").value;
+function changeFollowButton(following){
+    console.log(following);
+    // const loggedUser = document.getElementById("js-logged-user").value;
+    const userid = document.getElementById("js-user-id").value
     const followButton = document.getElementById("follow-btn");
-    followButton.innerHTML= loggedUser === follower.follower ? "Unfollow" : "Follow";
+    const unfollowButton = document.getElementById("unfollow-btn");
+
+    const followersHTML = document.getElementById("followers");
+    if(!following){
+        unfollowButton.style.display="none";        
+    } else {
+        followButton.style.display="none";    
+    }
+
+    followButton.addEventListener("click", function(){
+        fetch(`http://127.0.0.1:8000/${userid}/follow`, {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": getCookie('csrftoken')
+            }
+        })
+        .then(() => followButton.style.display="none")
+        .then(() => unfollowButton.style.display="block")
+        .then(() => fetch(`http://127.0.0.1:8000/${userid}/get-followers`)
+            .then(response => response.json())
+            .then(followers => {
+                followersHTML.innerHTML = `${followers.followers} Followers`
+            }) )
+        
+    })
+   
+
+    unfollowButton.addEventListener("click", function(){
+        fetch(`http://127.0.0.1:8000/${userid}/unfollow`, {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": getCookie('csrftoken')
+            }            
+        })
+        .then(() => unfollowButton.style.display="none")
+        .then(() => followButton.style.display="block")
+        .then(() => fetch(`http://127.0.0.1:8000/${userid}/get-followers`)
+            .then(response => response.json())
+            .then(followers => {
+                followersHTML.innerHTML = `${followers.followers} Followers`
+         })    
+        )
+         
+        
+    })
+   
+   
 }
+
+
+
+

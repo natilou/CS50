@@ -4,7 +4,7 @@ from unittest.util import _MAX_LENGTH
 from urllib import request
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
-from django.http import HttpRequest, HttpResponse, HttpResponseRedirect, JsonResponse, QueryDict
+from django.http import HttpRequest, HttpResponse, HttpResponseBadRequest, HttpResponseNotFound, HttpResponseRedirect, JsonResponse, QueryDict
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
@@ -114,11 +114,33 @@ def get_user_posts(request, user_id):
     user_posts = Post.objects.filter(user=user_id).order_by("-created")
     return JsonResponse([post.serialize() for post in user_posts], safe=False)
 
+@login_required
+def is_following(request, user_id):
+    is_following = Following.objects.filter(follower=request.user, followee=user_id).exists()
+    return JsonResponse({"is_following": is_following}, safe=False)
+
+@login_required
+def follow_user(request,  user_id):
+    if request.method == "POST":
+        followers = Following.objects.filter(follower=request.user, followee_id=user_id).exists()
+        if not followers:
+            Following.objects.create(follower=request.user, followee_id=user_id)
+            return HttpResponse()
+    return HttpResponseNotFound()
+
+@login_required
+def unfollow_user(request, user_id):
+    if request.method == "POST":
+        followers = Following.objects.filter(follower=request.user, followee_id=user_id).exists()
+        if followers:
+            Following.objects.filter(follower=request.user, followee_id=user_id).delete()
+            return HttpResponse()
+    return HttpResponseNotFound()
+
 def get_followers(request, user_id):
-    followers = Following.objects.filter(followee=user_id)
-    return JsonResponse([follower.serialize() for follower in followers], safe=False)
-
-
+    user_profile = get_object_or_404(User, id=user_id)
+    followers = user_profile.followers
+    return JsonResponse({"followers": followers}, safe=False)
 
 
 
