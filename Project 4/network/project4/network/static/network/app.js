@@ -1,9 +1,9 @@
 function getCookie(name) {
-    var cookieValue = null;
+    let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
-        var cookies = document.cookie.split(';');
-        for (var i = 0; i < cookies.length; i++) {
-            var cookie = cookies[i].trim()
+        let cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            let cookie = cookies[i].trim();
             // Does this cookie string begin with the name we want?
             if (cookie.substring(0, name.length + 1) === (name + '=')) {
                 cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
@@ -14,17 +14,24 @@ function getCookie(name) {
     return cookieValue;
 }
 
+const redIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-heart-fill" viewBox="0 0 16 16">
+<path fill="#dc3545" fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z"/>
+</svg>`
+
+const blackIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-heart-fill" viewBox="0 0 16 16">
+<path fill="#212529" fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z"/>
+</svg>`
+
 document.addEventListener("DOMContentLoaded", function() {
     // fetch a api con todos los posts de todos los usuarios
     fetch("http://127.0.0.1:8000/api/posts")
     .then(response => response.json())
     .then(posts => {
-        // console.log(posts);
+        console.log(posts);
         posts.forEach((post) => {
             loadPosts(post);
-            });
+            })
         })
-    
     },
     // fetch a api con todos los posts del usuario logeado
     document.addEventListener("DOMContentLoaded", function(){
@@ -32,11 +39,11 @@ document.addEventListener("DOMContentLoaded", function() {
         fetch(`http://127.0.0.1:8000/${userid}/api/posts`)
         .then(response => response.json())
         .then(posts => {
-        posts.forEach((post) => {   
-        loadUserPosts(post);
+            posts.forEach((post) => {   
+            loadUserPosts(post);
             });
         })
-    
+
     }),
 
     document.addEventListener("DOMContentLoaded", function(){
@@ -57,7 +64,6 @@ document.addEventListener("DOMContentLoaded", function() {
     })
 )
 
-
 // carga todos los posts de todos los usuarios en all-posts.html
 function loadPosts(post){
     // console.log(post)
@@ -75,13 +81,12 @@ function loadPosts(post){
     <div class="card-body">
         <div> 
             <h5 class="card-title">${post.content}
-
         </div>
         <div>
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-heart" viewBox="0 0 16 16">
-                <path d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01L8 2.748zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143c.06.055.119.112.176.171a3.12 3.12 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15z"/>
-            </svg>
-            <span class="card-text">${post.likes}</span>
+            <button type="button" class="btn btn-link like-btn post-${post.id}" onclick="changeLikeStatus(${post.id})">   
+                ${post.is_liked ? redIcon : blackIcon}
+            </button>
+            <span id="num-likes" class="card-text span-${post.id}">${post.num_likes}</span>
         </div>
     </div>`;
     document.getElementById("all-posts-container").append(postDiv); 
@@ -106,10 +111,10 @@ function loadUserPosts(post){
             <h5 class="card-title">${post.content}
         </div>
         <div>
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-heart" viewBox="0 0 16 16">
-                <path d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01L8 2.748zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143c.06.055.119.112.176.171a3.12 3.12 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15z"/>
-            </svg>
-            <span class="card-text">${post.likes}</span>
+            <button type="button" class="btn btn-link like-btn post-${post.id}" onclick="changeLikeStatus(${post.id})">   
+                ${post.is_liked ? redIcon : blackIcon}
+            </button>
+            <span id="num-likes" class="card-text span-${post.id}">${post.num_likes}</span>
         </div>
     </div>`;
     document.querySelector("#profile-container").append(userDivPost);
@@ -183,15 +188,51 @@ function loadFolloweesPosts(post){
             <h5 class="card-title">${post.content}
         </div>
         <div>
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-heart" viewBox="0 0 16 16">
-                <path d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01L8 2.748zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143c.06.055.119.112.176.171a3.12 3.12 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15z"/>
-            </svg>
-            <span class="card-text">${post.likes}</span>
+            <button type="button" class="btn btn-link like-btn post-${post.id}" onclick="changeLikeStatus(${post.id})">   
+                ${post.is_liked ? redIcon : blackIcon}
+            </button>
+            <span id="num-likes" class="card-text span-${post.id}">${post.num_likes}</span>
         </div>
     </div>`;
     document.getElementById("posts-followees-container").append(divPostFollowee);
 }
 
 
+function changeLikeStatus(post_id){
 
+    let likeBtn = document.querySelector(`.post-${post_id}`); 
 
+    fetch(`http://127.0.0.1:8000/api/posts/${post_id}`)
+    .then(response => response.json())
+    .then((post) => {
+        if (!post.is_liked){
+            fetch(`http://127.0.0.1:8000/api/posts/${post.id}/like`, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": getCookie('csrftoken')
+                    }
+            })
+            .then(() => likeBtn.innerHTML = redIcon)
+            .then(() => fetch(`http://127.0.0.1:8000/api/posts/${post.id}`)
+                .then(response => response.json())
+                .then(post => document.querySelector(`.span-${post_id}`).innerHTML = `${post.num_likes}`)
+            )
+            
+        } else {
+            fetch(`http://127.0.0.1:8000/api/posts/${post.id}/unlike`, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": getCookie('csrftoken')
+                }
+            })
+            .then(() => { likeBtn.innerHTML = blackIcon
+                })
+            .then(() => fetch(`http://127.0.0.1:8000/api/posts/${post.id}`)
+                .then(response => response.json())
+                .then(post => document.querySelector(`.span-${post_id}`).innerHTML = `${post.num_likes}`) 
+            )
+        }
+
+    })   
+
+}

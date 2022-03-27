@@ -20,7 +20,11 @@ class Post(models.Model):
     content = models.TextField(max_length=200)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now_add=True)
-    likes = models.IntegerField(default=0)
+    
+    @property
+    def num_likes(self):
+        total_likes = Likes.objects.filter(post=self).count()
+        return total_likes
 
     def serialize(self):
         return {
@@ -30,7 +34,7 @@ class Post(models.Model):
             "content": self.content,
             "created": self.created.strftime("%b %d %Y, %I:%M %p"),
             "updated": self.updated.strftime("%b %d %Y, %I:%M %p"),
-            "likes": self.likes
+            "num_likes": self.num_likes
         }
 
 
@@ -53,4 +57,7 @@ class Following(models.Model):
             "follower": self.follower.username, 
             "followee": self.followee.username
         }
-    
+
+class Likes(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="likes")
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="likes")  

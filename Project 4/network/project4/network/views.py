@@ -9,7 +9,7 @@ from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django import forms
-from .models import User, Post, Comment, Following
+from .models import User, Post, Comment, Following, Likes
 from django.shortcuts import get_object_or_404
 
 def index(request):
@@ -93,9 +93,15 @@ def create_new_post(request):
 
 def get_posts(request):
     posts = Post.objects.order_by("-created").all()
+    # Get variable serialized_posts
+    serialized_posts = [post.serialize() for post in posts]
+    # Iterate through serialized posts, adding is_liked key for each one
+    for serialized_post in serialized_posts:
+        is_liked = Likes.objects.filter(user=request.user, post_id = serialized_post["id"]).exists()
+        serialized_post["is_liked"] = is_liked
     #serializers.serialize('json', posts)
     # return HttpResponse(posts_list, content_type="text/json-comment-filtered")
-    return JsonResponse([post.serialize() for post in posts], safe=False)
+    return JsonResponse(serialized_posts, safe=False)
 
 
 def load_posts(request):
@@ -105,14 +111,18 @@ def load_posts(request):
 @login_required
 def profile(request, user_id): 
     profile_user = get_object_or_404(User, id=user_id)
-    get_user_posts(request, user_id)
     return render(request, "network/profile.html", {
         "profile_user": profile_user, 
     })
 
 def get_user_posts(request, user_id):
     user_posts = Post.objects.filter(user=user_id).order_by("-created")
-    return JsonResponse([post.serialize() for post in user_posts], safe=False)
+    serialized_posts = [post.serialize() for post in user_posts]
+    # Iterate through serialized posts, adding is_liked key for each one
+    for serialized_post in serialized_posts:
+        is_liked = Likes.objects.filter(user=request.user, post_id = serialized_post["id"]).exists()
+        serialized_post["is_liked"] = is_liked
+    return JsonResponse(serialized_posts, safe=False)
 
 @login_required
 def is_following(request, user_id):
@@ -146,8 +156,38 @@ def get_posts_from_followees(request):
     posts = Post.objects.filter(
         user__followees__follower=request.user
     ).order_by("-created")
-    return JsonResponse([post.serialize() for post in posts], safe=False)
+    # Get variable serialized_posts
+    serialized_posts = [post.serialize() for post in posts]
+    # Iterate through serialized posts, adding is_liked key for each one
+    for serialized_post in serialized_posts:
+        is_liked = Likes.objects.filter(user=request.user, post_id = serialized_post["id"]).exists()
+        serialized_post["is_liked"] = is_liked
+    return JsonResponse(serialized_posts, safe=False)
 
 @login_required
 def load_posts_followees(request):
     return render(request, "network/posts-followees.html")
+
+@login_required
+def like_post(request, post_id):
+    if request.method == "POST":
+        liked = Likes.objects.filter(user=request.user, post_id=post_id).exists()
+        if not liked:
+            Likes.objects.create(user=request.user, post_id=post_id)
+            return HttpResponse()
+    return HttpResponseNotFound()
+
+@login_required
+def unlike_post(request, post_id):
+    if request.method == "POST":
+        liked = Likes.objects.filter(user=request.user, post_id=post_id).exists()
+        if liked:
+            Likes.objects.filter(user=request.user, post_id=post_id).delete()
+            return HttpResponse()
+    return HttpResponseNotFound()
+
+def get_post(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+    serialized_post = post.serialize()
+    serialized_post["is_liked"] = Likes.objects.filter(user=request.user, post=post).exists()
+    return JsonResponse(serialized_post, safe=False)
