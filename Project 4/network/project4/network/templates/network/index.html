@@ -9,15 +9,12 @@
         <form id="post-form" action="{% url 'new-post' %}" method="post">
             {% csrf_token %}
             {{ form }}
-            <input type="submit" value="Post" class="btn btn-outline-secondary">
+            <input id="new-post-submit" type="submit" value="Post" class="btn btn-outline-secondary">
         </form>
     </div>
     {% endif %}
     {% if user.is_authenticated %}
     <div id="my-posts">
-        
-        <h2>My posts</h2>
-
     </div>
     {% endif %}
 </div>

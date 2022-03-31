@@ -35,20 +35,20 @@ document.addEventListener("DOMContentLoaded", function() {
     },
     // fetch a api con todos los posts del usuario logeado
     document.addEventListener("DOMContentLoaded", function(){
-        const userid = document.getElementById("js-user-id").value
-        fetch(`http://127.0.0.1:8000/${userid}/api/posts`)
+        const userProfileId = document.getElementById("js-user-profile-id").value
+        fetch(`http://127.0.0.1:8000/${userProfileId}/api/posts`)
         .then(response => response.json())
         .then(posts => {
             posts.forEach((post) => {   
-            loadUserPosts(post);
+                loadUserPosts(post);
             });
         })
 
     }),
 
     document.addEventListener("DOMContentLoaded", function(){
-        const userid = document.getElementById("js-user-id").value;
-        fetch(`http://127.0.0.1:8000/${userid}/api/is-following`)
+        const userProfileId = document.getElementById("js-user-profile-id").value;
+        fetch(`http://127.0.0.1:8000/${userProfileId}/api/is-following`)
             .then(response=>response.json())
             .then(following => { 
                 changeFollowButton(following.is_following);
@@ -64,78 +64,93 @@ document.addEventListener("DOMContentLoaded", function() {
     })
 )
 
-// carga todos los posts de todos los usuarios en all-posts.html
-function loadPosts(post){
-    // console.log(post)
-    const postDiv = document.createElement('div');
-    postDiv.className = "card";
-    postDiv.style.margin = "10px";
-    postDiv.innerHTML = `<div class="card-header">
-        <div class="container">
-            <div class="row">
-                <div class="col-9"><a href="http://127.0.0.1:8000/${post.user_id}"><strong>${post.user}</strong></a></div>
-                <div class="col-3">${post.created}</div>
-            </div>
+// genera card de post
+function generateCardPost(post){
+    const cardPost = document.createElement('div')
+    cardPost.className = "card";
+    cardPost.style.margin = "10px";
+    cardPost.innerHTML =  `<div class="card-header">
+    <div class="container">
+        <div id="title-card-${post.id}" class="row">
+            <div class="col-9"><a href="http://127.0.0.1:8000/${post.user_id}"><strong>${post.user}</strong></a></div>
+            <div class="col-2" id="date-post-${post.id}"><small>${post.created !== post.updated ? post.updated : post.created}</small></div>
         </div>
     </div>
-    <div class="card-body">
-        <div> 
-            <h5 class="card-title">${post.content}
-        </div>
-        <div>
-            <button type="button" class="btn btn-link like-btn post-${post.id}" onclick="changeLikeStatus(${post.id})">   
-                ${post.is_liked ? redIcon : blackIcon}
-            </button>
-            <span id="num-likes" class="card-text span-${post.id}">${post.num_likes}</span>
-        </div>
-    </div>`;
-    document.getElementById("all-posts-container").append(postDiv); 
+</div>
+<div class="card-body">
+    <div> 
+        <h5 class="card-title"id="content-${post.id}">${post.content}</h5> 
+    </div>
+    <div>
+        <button type="button" class="btn btn-link like-btn post-${post.id}" onclick="changeLikeStatus(${post.id})">   
+            ${post.is_liked ? redIcon : blackIcon}
+        </button>
+        <span id="num-likes" class="card-text span-${post.id}">${post.num_likes}</span>
+    </div>
+</div>`;
+    return cardPost;
+}
+
+// carga todos los posts de todos los usuarios en all-posts.html
+function loadPosts(post){
+    document.getElementById("all-posts-container").append(generateCardPost(post)); 
 }
 
 // carga los posts del usuario logeado, para verlos en su perfil, en profile.html
 function loadUserPosts(post){
-    console.log(post)
-    const userDivPost = document.createElement('div')
-    userDivPost.className = "card";
-    userDivPost.style.margin = "10px";
-    userDivPost.innerHTML = `<div class="card-header">
-    <div class="container">
-        <div class="row">
-            <div class="col-8"><strong>${post.user}</strong></div>
-            <div class="col-3">${post.created}</div>
-        </div>
-    </div>
-    </div>
-    <div class="card-body">
-        <div> 
-            <h5 class="card-title">${post.content}
-        </div>
-        <div>
-            <button type="button" class="btn btn-link like-btn post-${post.id}" onclick="changeLikeStatus(${post.id})">   
-                ${post.is_liked ? redIcon : blackIcon}
-            </button>
-            <span id="num-likes" class="card-text span-${post.id}">${post.num_likes}</span>
-        </div>
-    </div>`;
-    document.querySelector("#profile-container").append(userDivPost);
+    loggedUserId = document.getElementById("js-logged-user").value;
+    userProfileId = document.getElementById("js-user-profile-id").value;
+    if (loggedUserId === userProfileId){
+        //create a edit button 
+        const cardPost = generateCardPost(post);
+        const editBtn = document.createElement("button");
+        editBtn.className = `btn btn-link post-${post.id}`;
+        editBtn.innerHTML = "Edit";
+        editBtn.setAttribute("type", "button");
+        // append edit button to the post card
+        cardPost.append(editBtn);
+
+        //create a save button
+        const saveEdit = document.createElement("button");
+        saveEdit.className = `btn btn-link save-post-${post.id}`;
+        saveEdit.innerHTML = "Save";
+        saveEdit.setAttribute("type", "button");
+        saveEdit.style.display = "none";
+        // append edit button to the post card
+        cardPost.append(saveEdit);
+
+        document.querySelector("#profile-container").append(cardPost);
+        
+        editBtn.addEventListener("click", function() {
+            editBtn.style.display = "none";
+            saveEdit.style.display = "block";
+            editPost(post, saveEdit, editBtn);
+        })
+
+    } else {
+        document.querySelector("#profile-container").append(generateCardPost(post));
+    }
+    
 }
 
 function changeFollowButton(following){
     console.log(following);
     // const loggedUser = document.getElementById("js-logged-user").value;
-    const userid = document.getElementById("js-user-id").value
+    const userProfileId = document.getElementById("js-user-profile-id").value
     const followButton = document.getElementById("follow-btn");
     const unfollowButton = document.getElementById("unfollow-btn");
 
     const followersHTML = document.getElementById("followers");
     if(!following){
-        unfollowButton.style.display="none";        
+        unfollowButton.style.display="none";
+        followButton.style.display="block";        
     } else {
-        followButton.style.display="none";    
+        followButton.style.display="none";
+        unfollowButton.style.display="block";    
     }
 
     followButton.addEventListener("click", function(){
-        fetch(`http://127.0.0.1:8000/${userid}/follow`, {
+        fetch(`http://127.0.0.1:8000/${userProfileId}/follow`, {
             method: "POST",
             headers: {
                 "X-CSRFToken": getCookie('csrftoken')
@@ -143,7 +158,7 @@ function changeFollowButton(following){
         })
         .then(() => followButton.style.display="none")
         .then(() => unfollowButton.style.display="block")
-        .then(() => fetch(`http://127.0.0.1:8000/${userid}/get-followers`)
+        .then(() => fetch(`http://127.0.0.1:8000/${userProfileId}/get-followers`)
             .then(response => response.json())
             .then(followers => {
                 console.log(followers)
@@ -153,7 +168,7 @@ function changeFollowButton(following){
     })
 
     unfollowButton.addEventListener("click", function(){
-        fetch(`http://127.0.0.1:8000/${userid}/unfollow`, {
+        fetch(`http://127.0.0.1:8000/${userProfileId}/unfollow`, {
             method: "POST",
             headers: {
                 "X-CSRFToken": getCookie('csrftoken')
@@ -161,7 +176,7 @@ function changeFollowButton(following){
         })
         .then(() => unfollowButton.style.display="none")
         .then(() => followButton.style.display="block")
-        .then(() => fetch(`http://127.0.0.1:8000/${userid}/get-followers`)
+        .then(() => fetch(`http://127.0.0.1:8000/${userProfileId}/get-followers`)
             .then(response => response.json())
             .then(followers => {
                 console.log(followers)
@@ -172,29 +187,7 @@ function changeFollowButton(following){
 }
 
 function loadFolloweesPosts(post){
-    const divPostFollowee = document.createElement('div')
-    divPostFollowee.className = "card";
-    divPostFollowee.style.margin = "10px";
-    divPostFollowee.innerHTML = `<div class="card-header">
-    <div class="container">
-        <div class="row">
-            <div class="col-9"><a href="http://127.0.0.1:8000/${post.user_id}"><strong>${post.user}</strong></a></div>
-            <div class="col-3">${post.created}</div>
-        </div>
-    </div>
-    </div>
-    <div class="card-body">
-        <div> 
-            <h5 class="card-title">${post.content}
-        </div>
-        <div>
-            <button type="button" class="btn btn-link like-btn post-${post.id}" onclick="changeLikeStatus(${post.id})">   
-                ${post.is_liked ? redIcon : blackIcon}
-            </button>
-            <span id="num-likes" class="card-text span-${post.id}">${post.num_likes}</span>
-        </div>
-    </div>`;
-    document.getElementById("posts-followees-container").append(divPostFollowee);
+    document.getElementById("posts-followees-container").append(generateCardPost(post));
 }
 
 
@@ -236,3 +229,41 @@ function changeLikeStatus(post_id){
     })   
 
 }
+
+function editPost(post, saveEdit, editBtn){
+    const content = document.querySelector(`#content-${post.id}`); 
+    content.innerHTML = `<textarea id="textarea-${post.id}" style="width:100%;" maxlength=200>${post.content}</textarea>`
+    console.log(content.value);
+    const textArea = document.querySelector(`#textarea-${post.id}`);
+
+    saveEdit.addEventListener("click", function(){
+        console.log("quiero guardar")
+        console.log(content)
+        console.log(textArea)
+        console.log(textArea.value)
+        fetch(`http://127.0.0.1:8000/api/posts/${post.id}/edit`,{
+            method: "POST",
+            headers: {
+                "X-CSRFToken": getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                content: textArea.value,
+            }), 
+           
+        })
+        .then(() => fetch(`http://127.0.0.1:8000/api/posts/${post.id}`)
+            .then(response => response.json())
+            .then(post => {
+                document.querySelector(`#content-${post.id}`).innerHTML = `<h5 class="card-title"id="content-${post.id}">${post.content}</h5>`
+                document.querySelector(`#date-post-${post.id}`).innerHTML = `<small>${post.updated}</small>`
+            })
+            .then(() => {
+                saveEdit.style.display = "none"
+                editBtn.style.display = "block"
+            })
+            
+        )
+    
+    })
+}
+        

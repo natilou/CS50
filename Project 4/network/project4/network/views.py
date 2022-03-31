@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 from pydoc import classname
 from unittest.util import _MAX_LENGTH
@@ -11,6 +12,7 @@ from django.contrib.auth.decorators import login_required
 from django import forms
 from .models import User, Post, Comment, Following, Likes
 from django.shortcuts import get_object_or_404
+from django.db import models
 
 def index(request):
     if request.user.is_authenticated:
@@ -191,3 +193,18 @@ def get_post(request, post_id):
     serialized_post = post.serialize()
     serialized_post["is_liked"] = Likes.objects.filter(user=request.user, post=post).exists()
     return JsonResponse(serialized_post, safe=False)
+
+@login_required
+def edit_post(request, post_id):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        post_edited = get_object_or_404(Post, id = post_id)
+        post_edited.content = data["content"]
+        post_edited.updated = datetime.now()      
+        post_edited.save()
+        return JsonResponse(post_edited.serialize(), safe=False)  
+    else:
+        return HttpResponseBadRequest()
+
+
+
