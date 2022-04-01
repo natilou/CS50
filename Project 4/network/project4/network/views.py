@@ -12,7 +12,7 @@ from django.contrib.auth.decorators import login_required
 from django import forms
 from .models import User, Post, Comment, Following, Likes
 from django.shortcuts import get_object_or_404
-from django.db import models
+from django.core.paginator import Paginator
 
 def index(request):
     if request.user.is_authenticated:
@@ -205,6 +205,13 @@ def edit_post(request, post_id):
         return JsonResponse(post_edited.serialize(), safe=False)  
     else:
         return HttpResponseBadRequest()
-
+    
+@login_required
+def delete_post(request, post_id):
+    if request.method == "POST":
+       Post.objects.filter(user=request.user, post_id=post_id).delete()
+       return HttpResponse()
+    return HttpResponseNotFound()
+       
 
 
