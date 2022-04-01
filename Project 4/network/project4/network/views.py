@@ -209,8 +209,8 @@ def edit_post(request, post_id):
 @login_required
 def delete_post(request, post_id):
     if request.method == "POST":
-       Post.objects.filter(user=request.user, post_id=post_id).delete()
-       return HttpResponse()
+        Post.objects.filter(user=request.user, id=post_id).delete()
+        return HttpResponse()
     return HttpResponseNotFound()
        
 

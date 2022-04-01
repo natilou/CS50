@@ -101,6 +101,7 @@ document.addEventListener("DOMContentLoaded", function() {
 // genera card de post
 function generateCardPost(post){
     const cardPost = document.createElement('div')
+    cardPost.id = `card-post-${post.id}`
     cardPost.className = "card";
     cardPost.style.margin = "10px";
     cardPost.innerHTML =  `<div class="card-header">
@@ -147,16 +148,16 @@ function loadUserPosts(post){
        editBtn.setAttribute("type", "button");
 
         //create a save button
-        const saveEdit = document.createElement("button");
-        saveEdit.className = `col-md-auto btn btn-link save-post-${post.id}`;
-        saveEdit.innerHTML = `${saveIcon}`;
-        saveEdit.setAttribute("type", "button");
+        const saveBtn = document.createElement("button");
+        saveBtn.className = `col-md-auto btn btn-link save-post-${post.id}`;
+        saveBtn.innerHTML = `${saveIcon}`;
+        saveBtn.setAttribute("type", "button");
 
         //create a delete button 
-        const deletePost = document.createElement("button");
-        deletePost.className = `col-md-auto btn btn-link delete-post-${post.id}`;
-        deletePost.innerHTML = `${deleteIcon}`
-        deletePost.setAttribute("type", "button");
+        const deleteBtn = document.createElement("button");
+        deleteBtn.className = `col-md-auto btn btn-link delete-post-${post.id}`;
+        deleteBtn.innerHTML = `${deleteIcon}`
+        deleteBtn.setAttribute("type", "button");
 
         
         document.querySelector("#profile-container").append(cardPost);
@@ -170,8 +171,8 @@ function loadUserPosts(post){
         
             // append edit, save and delete buttons to the divButtons
             divButtons.append(editBtn);
-            divButtons.append(saveEdit);
-            divButtons.append(deletePost);
+            divButtons.append(saveBtn);
+            divButtons.append(deleteBtn);
         })
 
         cardPost.addEventListener("mouseleave", function(){
@@ -179,7 +180,14 @@ function loadUserPosts(post){
         })
               
         editBtn.addEventListener("click", function() {
-            editPost(post, saveEdit, editBtn);
+            editPost(post, saveBtn, editBtn);
+        })
+
+        deleteBtn.addEventListener("click", function(){
+            const alert = confirm("Are you sure you want to delete this post?");
+            if (alert) {
+                deletePost(post);
+            }
         })
 
     } else {
@@ -305,10 +313,23 @@ function editPost(post, saveEdit, editBtn){
             .then(post => {
                 document.querySelector(`#content-${post.id}`).innerHTML = `<h5 class="card-title"id="content-${post.id}">${post.content}</h5>`
                 document.querySelector(`#date-post-${post.id}`).innerHTML = `<small>${post.updated}</small>`
-                loadUserPosts(post)
             })
         )
     
     })
 }
-        
+
+function deletePost(post){
+
+    fetch(`http://127.0.0.1:8000/api/posts/${post.id}/delete`, {
+        method: "POST",
+        headers: {
+            "X-CSRFToken": getCookie('csrftoken')
+        }
+    })
+    .then(()=> document.querySelector(`#card-post-${post.id}`).remove())
+}
+
+
+  
+
