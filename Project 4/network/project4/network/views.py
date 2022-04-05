@@ -113,8 +113,10 @@ def load_posts(request):
 @login_required
 def profile(request, user_id): 
     profile_user = get_object_or_404(User, id=user_id)
+    is_following = Following.objects.filter(follower=request.user, followee=user_id).exists()
     return render(request, "network/profile.html", {
-        "profile_user": profile_user, 
+        "profile_user": profile_user,
+        "is_following": is_following, 
     })
 
 def get_user_posts(request, user_id):

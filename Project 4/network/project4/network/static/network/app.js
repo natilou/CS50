@@ -1,18 +1,12 @@
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        let cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            let cookie = cookies[i].trim();
-            // Does this cookie string begin with the name we want?
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return cookieValue;
-}
+// Constants
+
+const serverAddress = "http://127.0.0.1:8000"
+
+const allPostsContainerId = "all-posts-container";
+
+const profilePostsContainerId = "profile-container";
+
+const followeesPostsContainerId = "posts-followees-container";
 
 const redIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-heart-fill" viewBox="0 0 16 16">
 <path fill="#dc3545" fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z"/>
@@ -36,70 +30,107 @@ const deleteIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="1
 <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5ZM11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H2.506a.58.58 0 0 0-.01 0H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1h-.995a.59.59 0 0 0-.01 0H11Zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5h9.916Zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47ZM8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5Z"/>
 </svg>`;
 
+
+// Utils
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        let cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            let cookie = cookies[i].trim();
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+
+// Events
+
 document.addEventListener("DOMContentLoaded", function() {
     // fetch a api con todos los posts de todos los usuarios
-    fetch("http://127.0.0.1:8000/api/posts")
+    fetch(`${serverAddress}/api/posts`)
     .then(response => response.json())
     .then(posts => {
         console.log(posts);
-        posts.forEach((post) => {
-            loadPosts(post);
-            })
+        posts.forEach((post) => renderPost(post, allPostsContainerId))
         })
     },
     // fetch a api con todos los posts del usuario logeado
     document.addEventListener("DOMContentLoaded", function(){
-        const userProfileId = document.getElementById("js-user-profile-id").value;
-        fetch(`http://127.0.0.1:8000/${userProfileId}/api/posts`)
+        const userProfileId = document.getElementById("js-user-profile-id") ? document.getElementById("js-user-profile-id").value : null;
+        if (!userProfileId){
+            return;
+        }
+        fetch(`${serverAddress}/${userProfileId}/api/posts`)
         .then(response => response.json())
         .then(posts => {
-            posts.forEach((post) => {   
-                loadUserPosts(post);
-            });
+            posts.forEach((post) => renderPost(post, profilePostsContainerId));
         })
 
     }),
 
     window.addEventListener("load", function(){
         const navPage = document.querySelector("#nav-page");
-        navPage.style.display = "block"; // tal vez con una animación en css se puede retrasar su aparición.
+        setTimeout(() =>{ 
+            navPage.style.display = "block", 1000
+        }); 
         const postsContainer = document.querySelector("#all-posts-container"); 
         const pagesNum = this.document.querySelectorAll(".page-link");
         pagesNum.forEach(pageNum => pageNum.addEventListener("click", function(){
             console.log("recargando la pag");
             postsContainer.innerHTML = "";
-            fetch("http://127.0.0.1:8000/api/posts")
+            fetch(`${serverAddress}/api/posts`)
             .then(response => response.json())
             .then(posts => {
                 console.log(posts);
-                posts.forEach((post) => {
-                    loadPosts(post);
-                    })
+                posts.forEach((post) => renderPost(post, allPostsContainerId))
                 })
             })
         )
     }),
 
     document.addEventListener("DOMContentLoaded", function(){
-        const userProfileId = document.getElementById("js-user-profile-id").value;
-        fetch(`http://127.0.0.1:8000/${userProfileId}/api/is-following`)
-            .then(response=>response.json())
-            .then(following => { 
-                changeFollowButton(following.is_following);
+        const userProfileId = document.getElementById("js-user-profile-id") ? document.getElementById("js-user-profile-id").value : null
+        const followButton = document.getElementById("follow-btn") ? document.getElementById("follow-btn") : null;
+        if (!userProfileId || !followButton){
+            return;
+        }
+        fetch(`${serverAddress}/${userProfileId}/api/is-following`)
+        .then(response=>response.json())
+        .then(following => {
+            if(following.is_following){
+                followButton.innerHTML = "Unfollow"
+            } else {
+                followButton.innerHTML = "Follow"
+            }
+            followButton.addEventListener("click", () => changeFollowButton())
         })
+        
     }), 
     
     document.addEventListener("DOMContentLoaded", function(){
-        fetch(`http://127.0.0.1:8000/api/posts/followees`)
+        fetch(`${serverAddress}/api/posts/followees`)
         .then(response => response.json())
         .then(posts => {
-            posts.forEach(post => loadFolloweesPosts(post));
+            posts.forEach(post => renderPost(post, followeesPostsContainerId));
         })
     })
 )
 
-// genera card de post
+
+// Functions
+
 function generateCardPost(post){
+    // Generate card HTML content for post
+    
+    // Generate generic card content
+
     const cardPost = document.createElement('div')
     cardPost.id = `card-post-${post.id}`
     cardPost.className = "card";
@@ -107,8 +138,8 @@ function generateCardPost(post){
     cardPost.innerHTML =  `<div class="card-header">
     <div class="container">
         <div id="title-card-${post.id}" class="row">
-            <div class="col-8"><a href="http://127.0.0.1:8000/${post.user_id}"><strong>${post.user}</strong></a></div>
-            <div class="col-2" id="date-post-${post.id}"><small>${post.created !== post.updated ? post.updated : post.created}</small></div>
+            <div class="col-8"><a href="${serverAddress}/${post.user_id}"><strong>${post.user}</strong></a></div>
+            <div class="col-2" id="date-post-${post.id}"><small>${post.updated}</small></div>
             <div class="col-2 row justify-content-center" id="buttons-post-${post.id}" style="visibility:hidden;"></div>
         </div>
     </div>
@@ -124,29 +155,27 @@ function generateCardPost(post){
             <span id="num-likes" class="card-text span-${post.id}">${post.num_likes}</span>
         </div>
     </div>`;
+
     return cardPost;
+
 }
 
-// carga todos los posts de todos los usuarios en all-posts.html
-function loadPosts(post){
-    document.getElementById("all-posts-container").append(generateCardPost(post)); 
-}
+function enrichCardPost(post){
+    // Add interactive features to card post 
 
-// carga los posts del usuario logeado, para verlos en su perfil, en profile.html
-function loadUserPosts(post){
-    loggedUserId = document.getElementById("js-logged-user").value;
-    userProfileId = document.getElementById("js-user-profile-id").value;
-    if(loggedUserId === userProfileId){
+    // When logged user is the post owner, add action buttons
 
-       //generate card
-       const cardPost = generateCardPost(post);
+    let loggedUserId = document.getElementById("js-logged-user") ? document.getElementById("js-logged-user").value : null;
 
-       //create a edit button 
-       const editBtn = document.createElement("button");
-       editBtn.className = `col-md-auto btn btn-link edit-post-${post.id}`;
-       editBtn.innerHTML = `${editIcon}`;
-       editBtn.setAttribute("type", "button");
+    if (loggedUserId == post.user_id) {
+        cardPost = document.getElementById(`card-post-${post.id}`);
 
+        //create a edit button 
+        const editBtn = document.createElement("button");
+        editBtn.className = `col-md-auto btn btn-link edit-post-${post.id}`;
+        editBtn.innerHTML = `${editIcon}`;
+        editBtn.setAttribute("type", "button");
+        
         //create a save button
         const saveBtn = document.createElement("button");
         saveBtn.className = `col-md-auto btn btn-link save-post-${post.id}`;
@@ -159,20 +188,14 @@ function loadUserPosts(post){
         deleteBtn.innerHTML = `${deleteIcon}`
         deleteBtn.setAttribute("type", "button");
 
-        
-        document.querySelector("#profile-container").append(cardPost);
-        console.log("apend de card")
-
         //select div for buttons section
         const divButtons = document.getElementById(`buttons-post-${post.id}`)
+        divButtons.append(editBtn);
+        divButtons.append(saveBtn);
+        divButtons.append(deleteBtn);
 
         cardPost.addEventListener("mouseenter", function() {
             divButtons.style.visibility = "visible";
-        
-            // append edit, save and delete buttons to the divButtons
-            divButtons.append(editBtn);
-            divButtons.append(saveBtn);
-            divButtons.append(deleteBtn);
         })
 
         cardPost.addEventListener("mouseleave", function(){
@@ -180,7 +203,11 @@ function loadUserPosts(post){
         })
               
         editBtn.addEventListener("click", function() {
-            editPost(post, saveBtn, editBtn);
+            initializeEditPost(post);
+        })
+
+        saveBtn.addEventListener("click", function(){
+            saveEditPost(post);
         })
 
         deleteBtn.addEventListener("click", function(){
@@ -189,139 +216,107 @@ function loadUserPosts(post){
                 deletePost(post);
             }
         })
-
-    } else {
-        document.querySelector("#profile-container").append(generateCardPost(post));
     }
-    
 }
 
-function changeFollowButton(following){
-    console.log(following);
-    // const loggedUser = document.getElementById("js-logged-user").value;
-    const userProfileId = document.getElementById("js-user-profile-id").value
+function renderPost(post, containerId){
+    // Render post card in specified container 
+    document.getElementById(containerId).append(generateCardPost(post)); 
+    enrichCardPost(post);
+}
+
+
+function changeFollowButton(){
+    // Follow or unfollow user
+    const userProfileId = document.getElementById("js-user-profile-id").value;
     const followButton = document.getElementById("follow-btn");
-    const unfollowButton = document.getElementById("unfollow-btn");
-
     const followersHTML = document.getElementById("followers");
-    if(!following){
-        unfollowButton.style.display="none";
-        followButton.style.display="block";        
-    } else {
-        followButton.style.display="none";
-        unfollowButton.style.display="block";    
-    }
 
-    followButton.addEventListener("click", function(){
-        fetch(`http://127.0.0.1:8000/${userProfileId}/follow`, {
+    fetch(`${serverAddress}/${userProfileId}/api/is-following`)
+    .then(response=>response.json())
+    .then(following =>  {
+        const is_following = following.is_following;
+        fetch(`${serverAddress}/${userProfileId}/${is_following ? "unfollow" : "follow"}`, {
             method: "POST",
             headers: {
                 "X-CSRFToken": getCookie('csrftoken')
             }
         })
-        .then(() => followButton.style.display="none")
-        .then(() => unfollowButton.style.display="block")
-        .then(() => fetch(`http://127.0.0.1:8000/${userProfileId}/get-followers`)
+        .then(() => followButton.innerHTML = `${is_following ? "Follow" : "Unfollow"}`)
+        .then(() => fetch(`${serverAddress}/${userProfileId}/get-followers`)
             .then(response => response.json())
-            .then(followers => {
-                console.log(followers)
-                followersHTML.innerHTML = `${followers.num_followers} Followers`
-            }) 
+            .then(followers => followersHTML.innerHTML = `${followers.num_followers} Followers`) 
         )
-    })
-
-    unfollowButton.addEventListener("click", function(){
-        fetch(`http://127.0.0.1:8000/${userProfileId}/unfollow`, {
-            method: "POST",
-            headers: {
-                "X-CSRFToken": getCookie('csrftoken')
-            }            
-        })
-        .then(() => unfollowButton.style.display="none")
-        .then(() => followButton.style.display="block")
-        .then(() => fetch(`http://127.0.0.1:8000/${userProfileId}/get-followers`)
-            .then(response => response.json())
-            .then(followers => {
-                console.log(followers)
-                followersHTML.innerHTML = `${followers.num_followers} Followers`
-            })    
-        )
-    })
-}
-
-function loadFolloweesPosts(post){
-    document.getElementById("posts-followees-container").append(generateCardPost(post));
+    }
+)
 }
 
 
 function changeLikeStatus(post_id){
+    // Like or unlike a post
 
     let likeBtn = document.querySelector(`.post-${post_id}`); 
 
-    fetch(`http://127.0.0.1:8000/api/posts/${post_id}`)
+    fetch(`${serverAddress}/api/posts/${post_id}`)
     .then(response => response.json())
     .then((post) => {
+        let endpointAction = "unlike";
+        let colorIcon = greyIcon;  
         if (!post.is_liked){
-            fetch(`http://127.0.0.1:8000/api/posts/${post.id}/like`, {
-                method: "POST",
-                headers: {
-                    "X-CSRFToken": getCookie('csrftoken')
-                    }
-            })
-            .then(() => likeBtn.innerHTML = redIcon)
-            .then(() => fetch(`http://127.0.0.1:8000/api/posts/${post.id}`)
-                .then(response => response.json())
-                .then(post => document.querySelector(`.span-${post_id}`).innerHTML = `${post.num_likes}`)
-            )
-            
-        } else {
-            fetch(`http://127.0.0.1:8000/api/posts/${post.id}/unlike`, {
-                method: "POST",
-                headers: {
-                    "X-CSRFToken": getCookie('csrftoken')
-                }
-            })
-            .then(() => { likeBtn.innerHTML = greyIcon })
-            .then(() => fetch(`http://127.0.0.1:8000/api/posts/${post.id}`)
-                .then(response => response.json())
-                .then(post => document.querySelector(`.span-${post_id}`).innerHTML = `${post.num_likes}`) 
-            )
+            endpointAction = "like";
+            colorIcon = redIcon;
         }
+      
+        fetch(`${serverAddress}/api/posts/${post.id}/${endpointAction}`, {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": getCookie('csrftoken')
+            }
+        })
+        .then(() => { likeBtn.innerHTML = colorIcon })
+        .then(() => fetch(`${serverAddress}/api/posts/${post.id}`)
+            .then(response => response.json())
+            .then(post => document.querySelector(`.span-${post_id}`).innerHTML = `${post.num_likes}`) 
+        )
 
     })   
 
 }
 
-function editPost(post, saveEdit, editBtn){
-    const content = document.querySelector(`#content-${post.id}`); 
-    content.innerHTML = `<textarea id="textarea-${post.id}" style="width:100%;" maxlength=200>${post.content}</textarea>`;
-    const textArea = document.querySelector(`#textarea-${post.id}`);
+function initializeEditPost(post){
+    // Create textarea to edit post
 
-    saveEdit.addEventListener("click", function(){
-        fetch(`http://127.0.0.1:8000/api/posts/${post.id}/edit`,{
-            method: "POST",
-            headers: {
-                "X-CSRFToken": getCookie('csrftoken')
-            },
-            body: JSON.stringify({
-                content: textArea.value,
-            }), 
-           
-        })
-        .then(() => fetch(`http://127.0.0.1:8000/api/posts/${post.id}`)
-            .then(response => response.json())
-            .then(post => {
-                document.querySelector(`#content-${post.id}`).innerHTML = `<h5 class="card-title"id="content-${post.id}">${post.content}</h5>`
-                document.querySelector(`#date-post-${post.id}`).innerHTML = `<small>${post.updated}</small>`
-            })
-        )
-    
+    const content = document.getElementById(`content-${post.id}`); 
+    content.innerHTML = `<textarea id="textarea-${post.id}" style="width:100%;" maxlength=200>${content.textContent}</textarea>`;
+}
+
+function saveEditPost(post){
+    // Save changes to post content
+
+    const textArea = document.getElementById(`textarea-${post.id}`);
+    fetch(`${serverAddress}/api/posts/${post.id}/edit`,{
+        method: "POST",
+        headers: {
+            "X-CSRFToken": getCookie('csrftoken')
+        },
+        body: JSON.stringify({
+            content: textArea.value,
+        }), 
+        
     })
+    .then(() => fetch(`${serverAddress}/api/posts/${post.id}`)
+        .then(response => response.json())
+        .then(post => {
+            document.querySelector(`#content-${post.id}`).innerHTML = `<h5 class="card-title"id="content-${post.id}">${post.content}</h5>`
+            document.querySelector(`#date-post-${post.id}`).innerHTML = `<small>${post.updated}</small>`
+        })
+    )
 }
 
 function deletePost(post){
-
-    fetch(`http://127.0.0.1:8000/api/posts/${post.id}/delete`, {
+    // Delete post 
+    
+    fetch(`${serverAddress}/api/posts/${post.id}/delete`, {
         method: "POST",
         headers: {
             "X-CSRFToken": getCookie('csrftoken')

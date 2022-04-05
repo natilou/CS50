@@ -12,8 +12,7 @@
                 <input type="hidden" id="js-logged-user" value="{{ user.id }}">
                 <h1 id="user-name"  style="margin-top:1.7rem;" class="display-4"> {{ profile_user.username }}</h1>
                     {% if user.id != profile_user.id  %}
-                        <button type="submit" class="btn btn-primary" id="follow-btn" style="display:none;">Follow</button>
-                        <button type="submit" class="btn btn-primary" id="unfollow-btn" style="display:none;">Unfollow</button>
+                        <button type="submit" class="btn btn-primary" id="follow-btn"></button>
                     {% endif  %}
 
             </div>
