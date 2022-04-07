@@ -298,7 +298,6 @@ function renderPagination(page){
         })
         .catch(error => console.log(error))
     })
-
 }
 
 function changeFollowButton(){
@@ -308,7 +307,7 @@ function changeFollowButton(){
     const followButton = document.getElementById("follow-btn");
     const followersHTML = document.getElementById("followers");
 
-    fetch(`${serverAddress}/${userProfileId}/api/is-following`)
+    fetch(`${serverAddress}/api/${userProfileId}/is-following`)
     .then(response=>response.json())
     .then(following =>  {
         const is_following = following.is_following;
@@ -326,7 +325,6 @@ function changeFollowButton(){
     }
 )
 }
-
 
 function changeLikeStatus(post_id){
     // Like or unlike a post
