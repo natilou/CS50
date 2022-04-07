@@ -11,7 +11,7 @@
                 <input type="hidden" id="js-followers" value="{{ profile_user.followers }}">
                 <input type="hidden" id="js-logged-user" value="{{ user.id }}">
                 <h1 id="user-name"  style="margin-top:1.7rem;" class="display-4"> {{ profile_user.username }}</h1>
-                    {% if user.id != profile_user.id  %}
+                    {% if user.id != profile_user.id and user.is_authenticated  %}
                         <button type="submit" class="btn btn-primary" id="follow-btn"></button>
                     {% endif  %}
 
