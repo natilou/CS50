@@ -10,9 +10,12 @@ from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django import forms
+from httplib2 import RETRIES
 from .models import User, Post, Comment, Following, Likes
 from django.shortcuts import get_object_or_404
 from django.core.paginator import Paginator
+from django.core import serializers
+import requests
 
 def index(request):
     if request.user.is_authenticated:
@@ -95,16 +98,7 @@ def create_new_post(request):
 
 def get_posts(request):
     posts = Post.objects.order_by("-created").all()
-    # Get variable serialized_posts
-    serialized_posts = [post.serialize() for post in posts]
-    # Iterate through serialized posts, adding is_liked key for each one
-    for serialized_post in serialized_posts:
-        is_liked = Likes.objects.filter(user=request.user, post_id = serialized_post["id"]).exists()
-        serialized_post["is_liked"] = is_liked
-    #serializers.serialize('json', posts)
-    # return HttpResponse(posts_list, content_type="text/json-comment-filtered")
-    return JsonResponse(serialized_posts, safe=False)
-
+    return get_posts_page(request, posts)
 
 def load_posts(request):
     return render(request, "network/all-posts.html")
@@ -121,13 +115,8 @@ def profile(request, user_id):
 
 def get_user_posts(request, user_id):
     user_posts = Post.objects.filter(user=user_id).order_by("-created")
-    serialized_posts = [post.serialize() for post in user_posts]
-    # Iterate through serialized posts, adding is_liked key for each one
-    for serialized_post in serialized_posts:
-        is_liked = Likes.objects.filter(user=request.user, post_id = serialized_post["id"]).exists()
-        serialized_post["is_liked"] = is_liked
-    return JsonResponse(serialized_posts, safe=False)
-
+    return get_posts_page(request, user_posts)
+    
 @login_required
 def is_following(request, user_id):
     is_following = Following.objects.filter(follower=request.user, followee=user_id).exists()
@@ -160,14 +149,8 @@ def get_posts_from_followees(request):
     posts = Post.objects.filter(
         user__followees__follower=request.user
     ).order_by("-created")
-    # Get variable serialized_posts
-    serialized_posts = [post.serialize() for post in posts]
-    # Iterate through serialized posts, adding is_liked key for each one
-    for serialized_post in serialized_posts:
-        is_liked = Likes.objects.filter(user=request.user, post_id = serialized_post["id"]).exists()
-        serialized_post["is_liked"] = is_liked
-    return JsonResponse(serialized_posts, safe=False)
-
+    return get_posts_page(request, posts)
+    
 @login_required
 def load_posts_followees(request):
     return render(request, "network/posts-followees.html")
@@ -214,6 +197,41 @@ def delete_post(request, post_id):
         Post.objects.filter(user=request.user, id=post_id).delete()
         return HttpResponse()
     return HttpResponseNotFound()
-       
+
+def load_real_tweets(request):
+    return render(request, "network/real-tweets.html")
+
+
+def get_posts_page(request, queryset):
+    page_number = request.GET.get('page', 1)
+    per_page = request.GET.get('per_page', 10)
+    paginator = Paginator(queryset, per_page)
+    page_obj = paginator.get_page(page_number)
+    serialized_posts = [post.serialize() for post in page_obj.object_list]
+    for serialized_post in serialized_posts:
+        is_liked = Likes.objects.filter(user=request.user, post_id = serialized_post["id"]).exists()
+        serialized_post["is_liked"] = is_liked
+
+    data = [post for post in serialized_posts]
+    
+    payload = {
+        "page": {
+            "current": page_obj.number, 
+            "has_next": page_obj.has_next(), 
+            "has_previous": page_obj.has_previous(),
+        },
+        "data": data 
+   
+    }
+    return JsonResponse(payload) 
+
+def get_real_tweets(request):
+    url = 'https://api.twitter.com/2/tweets/sample/stream'
+    headers = {
+        'Authorization': 'Bearer AAAAAAAAAAAAAAAAAAAAAAuHbAEAAAAAQZLlrfq%2FD%2FI0IL%2BMzoJ01qDYwec%3DFYV1wjm9PNlEcQ6fEn4EJx8DEnExKB422jbr1nMVWK86IihRbB'
+    }
+    r = requests.get(url, headers=headers)
+    return r.json()
+
 
 

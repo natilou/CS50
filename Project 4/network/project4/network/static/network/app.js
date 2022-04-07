@@ -8,6 +8,12 @@ const profilePostsContainerId = "profile-container";
 
 const followeesPostsContainerId = "posts-followees-container";
 
+const allPostsPaginationId = "all-posts-pagination"; 
+
+const profilePaginationId = "profile-pagination"; 
+
+const followeesPaginationId = "followees-pagination"; 
+
 const redIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-heart-fill" viewBox="0 0 16 16">
 <path fill="#dc3545" fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z"/>
 </svg>`;
@@ -16,7 +22,7 @@ const greyIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
 <path fill="#90929a" fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z"/>
 </svg>`;
 
-const editIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
+const editIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pl-square" viewBox="0 0 16 16">
 <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
 <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"/>
 </svg>`;
@@ -53,55 +59,42 @@ function getCookie(name) {
 // Events
 
 document.addEventListener("DOMContentLoaded", function() {
-    // fetch a api con todos los posts de todos los usuarios
+    // api fetch to posts from all users
+    
     fetch(`${serverAddress}/api/posts`)
     .then(response => response.json())
-    .then(posts => {
-        console.log(posts);
-        posts.forEach((post) => renderPost(post, allPostsContainerId))
-        })
+    .then(response => {
+        response.data.forEach((post) => renderPost(post, allPostsContainerId))
+        renderPagination(response.page);
+    })
+    .catch(error => console.log(error))
     },
-    // fetch a api con todos los posts del usuario logeado
+
+    
     document.addEventListener("DOMContentLoaded", function(){
+        // api fetch to posts from profile user
         const userProfileId = document.getElementById("js-user-profile-id") ? document.getElementById("js-user-profile-id").value : null;
         if (!userProfileId){
             return;
         }
-        fetch(`${serverAddress}/${userProfileId}/api/posts`)
+        fetch(`${serverAddress}/api/${userProfileId}/posts`)
         .then(response => response.json())
-        .then(posts => {
-            posts.forEach((post) => renderPost(post, profilePostsContainerId));
+        .then(response => {
+            response.data.forEach((post) => renderPost(post, profilePostsContainerId));
+            renderPagination(response.page); 
         })
-
-    }),
-
-    window.addEventListener("load", function(){
-        const navPage = document.querySelector("#nav-page");
-        setTimeout(() =>{ 
-            navPage.style.display = "block", 1000
-        }); 
-        const postsContainer = document.querySelector("#all-posts-container"); 
-        const pagesNum = this.document.querySelectorAll(".page-link");
-        pagesNum.forEach(pageNum => pageNum.addEventListener("click", function(){
-            console.log("recargando la pag");
-            postsContainer.innerHTML = "";
-            fetch(`${serverAddress}/api/posts`)
-            .then(response => response.json())
-            .then(posts => {
-                console.log(posts);
-                posts.forEach((post) => renderPost(post, allPostsContainerId))
-                })
-            })
-        )
+        .catch(error => console.log(error))
     }),
 
     document.addEventListener("DOMContentLoaded", function(){
+        // api fetch to know if logged user follow profile user
+
         const userProfileId = document.getElementById("js-user-profile-id") ? document.getElementById("js-user-profile-id").value : null
         const followButton = document.getElementById("follow-btn") ? document.getElementById("follow-btn") : null;
         if (!userProfileId || !followButton){
             return;
         }
-        fetch(`${serverAddress}/${userProfileId}/api/is-following`)
+        fetch(`${serverAddress}/api/${userProfileId}/is-following`)
         .then(response=>response.json())
         .then(following => {
             if(following.is_following){
@@ -111,15 +104,29 @@ document.addEventListener("DOMContentLoaded", function() {
             }
             followButton.addEventListener("click", () => changeFollowButton())
         })
+        .catch(error => console.log(error))
         
     }), 
     
     document.addEventListener("DOMContentLoaded", function(){
+        // api fetch to posts from user's followees
+
         fetch(`${serverAddress}/api/posts/followees`)
         .then(response => response.json())
-        .then(posts => {
-            posts.forEach(post => renderPost(post, followeesPostsContainerId));
+        .then(response => {
+            response.data.forEach((post) => renderPost(post, followeesPostsContainerId))
+            renderPagination(response.page)
         })
+        .catch(error => console.log(error))
+    }),
+
+    document.getElementById("real-tweets").addEventListener("click", function(){
+        // api fetch to real twitter posts 
+
+        fetch(`${serverAddress}/api/twitter`)
+        .then(response => response.json())
+        .then(tweets => tweets.forEach( tweet => renderRealTweet(tweet)))
+        .catch(error => console.log(error))
     })
 )
 
@@ -220,14 +227,70 @@ function enrichCardPost(post){
 }
 
 function renderPost(post, containerId){
-    // Render post card in specified container 
+    // Render post card in specified container
     document.getElementById(containerId).append(generateCardPost(post)); 
-    enrichCardPost(post);
+    enrichCardPost(post);    
 }
 
+function renderPagination(page){
+    console.log(page)
+    const userProfileId = document.getElementById("js-user-profile-id") ? document.getElementById("js-user-profile-id").value : null;
+    const pageHtml = document.querySelector("#current a");
+    const previousHtml = document.querySelector("#previous a");
+    const nextHtml = document.querySelector("#next a");
+    currentPage = page.current;
+    nextPage = 0;
+    previousPage = 0;
+
+    if(page.has_next){
+        nextPage = currentPage + 1;
+        nextHtml.removeAttribute("aria-disabled");
+        nextHtml.setAttribute("href", "#");
+    } else {
+        nextHtml.setAttribute("aria-disabled", "true")
+        nextHtml.removeAttribute("href");
+    }
+
+    if(page.has_previous){
+        previousPage = currentPage - 1;
+        previousHtml.removeAttribute("aria-disabled");
+        previousHtml.setAttribute("href", "#");
+    } else{
+        previousHtml.setAttribute("aria-disabled", "true");
+        previousHtml.removeAttribute("href");
+    }
+    
+    pageHtml.innerHTML = currentPage;
+
+    nextHtml.addEventListener("click", function(){
+        fetch(`${serverAddress}/api/${userProfileId}/posts?page=${nextPage}`)
+        .then(response => response.json())
+        .then(response => {
+            document.getElementById(profilePostsContainerId).innerHTML = "";
+            response.data.forEach((post) => renderPost(post, profilePostsContainerId));
+            renderPagination(response.page, profilePaginationId);
+            
+        })
+        .catch(error => console.log(error))
+    })
+
+    previousHtml.addEventListener("click", function(){
+        fetch(`${serverAddress}/api/${userProfileId}/posts?page=${previousPage}`)
+        .then(response => response.json())
+        .then(response => {
+            document.getElementById(profilePostsContainerId).innerHTML = "";
+            response.data.forEach((post) => renderPost(post, profilePostsContainerId));
+            renderPagination(response.page, profilePaginationId); 
+           
+        })
+        .catch(error => console.log(error))
+    })
+
+}
 
 function changeFollowButton(){
     // Follow or unfollow user
+
     const userProfileId = document.getElementById("js-user-profile-id").value;
     const followButton = document.getElementById("follow-btn");
     const followersHTML = document.getElementById("followers");
@@ -323,6 +386,13 @@ function deletePost(post){
         }
     })
     .then(()=> document.querySelector(`#card-post-${post.id}`).remove())
+}
+
+function renderRealTweet(tweet){
+    // Render real twitter posts 
+
+    const realTweetsContainer = document.getElementById("real-tweet-container")
+    console.log(tweet)
 }
 
 

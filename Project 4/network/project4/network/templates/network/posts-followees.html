@@ -2,5 +2,18 @@
 {% block body %}
    <div class="container-xl" id="posts-followees-container">
    </div>
-   
+
+
+   <nav id="followees-pagination" aria-label="Page navigation">
+      <ul class="pagination">
+        <li class="page-item" style="display:none">
+            <span id="previous" aria-hidden="true">&laquo;</span>
+        </li>
+        <li class="page-item current-page"></li>
+        <li class="page-item" style="display:none">
+            <span id="next" aria-hidden="true">&raquo;</span>
+        </li>
+      </ul>
+    </nav>
+
 {% endblock %}
