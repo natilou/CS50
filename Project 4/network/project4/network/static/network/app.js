@@ -14,6 +14,8 @@ const profilePaginationId = "profile-pagination";
 
 const followeesPaginationId = "followees-pagination"; 
 
+const userProfileId = document.getElementById("js-user-profile-id") ? document.getElementById("js-user-profile-id").value : null
+
 const redIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-heart-fill" viewBox="0 0 16 16">
 <path fill="#dc3545" fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z"/>
 </svg>`;
@@ -73,7 +75,6 @@ document.addEventListener("DOMContentLoaded", function() {
     
     document.addEventListener("DOMContentLoaded", function(){
         // api fetch to posts from profile user
-        const userProfileId = document.getElementById("js-user-profile-id") ? document.getElementById("js-user-profile-id").value : null;
         if (!userProfileId){
             return;
         }
@@ -88,8 +89,6 @@ document.addEventListener("DOMContentLoaded", function() {
 
     document.addEventListener("DOMContentLoaded", function(){
         // api fetch to know if logged user follow profile user
-
-        const userProfileId = document.getElementById("js-user-profile-id") ? document.getElementById("js-user-profile-id").value : null
         const followButton = document.getElementById("follow-btn") ? document.getElementById("follow-btn") : null;
         if (!userProfileId || !followButton){
             return;
@@ -233,8 +232,8 @@ function renderPost(post, containerId){
 }
 
 function renderPagination(page){
-    console.log(page)
-    const userProfileId = document.getElementById("js-user-profile-id") ? document.getElementById("js-user-profile-id").value : null;
+    //change pages
+
     const pageHtml = document.querySelector("#current a");
     const previousHtml = document.querySelector("#previous a");
     const nextHtml = document.querySelector("#next a");
@@ -262,26 +261,40 @@ function renderPagination(page){
     
     pageHtml.innerHTML = currentPage;
 
+    let url;
+    let containerId;
+    if(document.getElementById("js-user-profile-id")){
+        url = `${serverAddress}/api/${userProfileId}/posts`;
+        containerId = profilePostsContainerId;
+    }
+    if(document.getElementById(`${allPostsContainerId}`)){
+        url = `${serverAddress}/api/posts`;
+        containerId = allPostsContainerId;
+    }
+    if(document.getElementById(`${followeesPostsContainerId}`)){
+        url = `${serverAddress}/api/posts/followees`;
+        containerId = followeesPostsContainerId;
+    }
+
+
     nextHtml.addEventListener("click", function(){
-        fetch(`${serverAddress}/api/${userProfileId}/posts?page=${nextPage}`)
+        fetch(`${url}?page=${nextPage}`)
         .then(response => response.json())
         .then(response => {
-            document.getElementById(profilePostsContainerId).innerHTML = "";
-            response.data.forEach((post) => renderPost(post, profilePostsContainerId));
-            renderPagination(response.page, profilePaginationId);
-            
+            document.getElementById(containerId).innerHTML = "";
+            response.data.forEach((post) => renderPost(post, containerId));
+            renderPagination(response.page); 
         })
         .catch(error => console.log(error))
     })
 
     previousHtml.addEventListener("click", function(){
-        fetch(`${serverAddress}/api/${userProfileId}/posts?page=${previousPage}`)
+        fetch(`${url}?page=${previousPage}`)
         .then(response => response.json())
         .then(response => {
-            document.getElementById(profilePostsContainerId).innerHTML = "";
-            response.data.forEach((post) => renderPost(post, profilePostsContainerId));
-            renderPagination(response.page, profilePaginationId); 
-           
+            document.getElementById(containerId).innerHTML = "";
+            response.data.forEach((post) => renderPost(post, containerId));
+            renderPagination(response.page); 
         })
         .catch(error => console.log(error))
     })
