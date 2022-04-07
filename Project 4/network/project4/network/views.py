@@ -209,8 +209,9 @@ def get_posts_page(request, queryset):
     page_obj = paginator.get_page(page_number)
     serialized_posts = [post.serialize() for post in page_obj.object_list]
     for serialized_post in serialized_posts:
-        is_liked = Likes.objects.filter(user=request.user, post_id = serialized_post["id"]).exists()
-        serialized_post["is_liked"] = is_liked
+        if not request.user.is_anonymous:
+            is_liked = Likes.objects.filter(user=request.user, post_id = serialized_post["id"]).exists()
+            serialized_post["is_liked"] = is_liked
 
     data = [post for post in serialized_posts]
     

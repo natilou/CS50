@@ -66,6 +66,7 @@ document.addEventListener("DOMContentLoaded", function() {
     fetch(`${serverAddress}/api/posts`)
     .then(response => response.json())
     .then(response => {
+        console.log(response)
         response.data.forEach((post) => renderPost(post, allPostsContainerId))
         renderPagination(response.page);
     })
