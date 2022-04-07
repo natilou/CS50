@@ -1,7 +1,15 @@
 {% extends "network/layout.html" %}
 {% block body %}
-<h2>Real tweets</h2>
+<h2 style="margin:1rem;">Real tweets</h2>
+<div id="form-div">
+    <form id="search-user-form" action="{% url 'new-post' %}" method="post">
+        {% csrf_token %}
+        <label for="twitter-username" class="form-label" style="margin:1rem;">Enter a username</label>
+        <input id="twitter-username" type="text" class="form-control" style="margin-left:1rem; width: 50%;">
+        <input id="search-user" type="button" value="Search" class="btn btn-primary" style="margin-left:1rem; margin-top:1rem">
+    </form>
+</div>
 <div class="container-xl" id="real-tweet-container">
 </div>
-   
+
 {% endblock %}

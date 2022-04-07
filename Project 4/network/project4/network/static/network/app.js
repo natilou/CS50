@@ -120,13 +120,19 @@ document.addEventListener("DOMContentLoaded", function() {
         .catch(error => console.log(error))
     }),
 
-    document.getElementById("real-tweets").addEventListener("click", function(){
-        // api fetch to real twitter posts 
-
-        fetch(`${serverAddress}/api/twitter`)
-        .then(response => response.json())
-        .then(tweets => tweets.forEach( tweet => renderRealTweet(tweet)))
-        .catch(error => console.log(error))
+    document.addEventListener("DOMContentLoaded", function(){
+        // api fetch to real twitter posts
+        searchUserBtn = document.getElementById("search-user") ? document.getElementById("search-user") : null;
+        searchUserBtn.addEventListener("click", () => {
+            twitterUsername = document.getElementById("twitter-username") ? document.getElementById("twitter-username").value : null;
+            if(!twitterUsername || !searchUserBtn){
+                return;
+            }
+            fetch(`${serverAddress}/api/twitter/${twitterUsername}`)
+            .then(response => response.json())
+            .then(response => renderRealTweet(response.data, response.username))
+            .catch(error => console.log(error))
+        })
     })
 )
 
@@ -142,14 +148,15 @@ function generateCardPost(post){
     cardPost.id = `card-post-${post.id}`
     cardPost.className = "card";
     cardPost.style.margin = "10px";
-    cardPost.innerHTML =  `<div class="card-header">
-    <div class="container">
-        <div id="title-card-${post.id}" class="row">
-            <div class="col-8"><a href="${serverAddress}/${post.user_id}"><strong>${post.user}</strong></a></div>
-            <div class="col-2" id="date-post-${post.id}"><small>${post.updated}</small></div>
-            <div class="col-2 row justify-content-center" id="buttons-post-${post.id}" style="visibility:hidden;"></div>
+    cardPost.innerHTML =  `
+    <div class="card-header">
+        <div class="container">
+            <div id="title-card-${post.id}" class="row">
+                <div class="col-8"><a href="${serverAddress}/${post.user_id}"><strong>${post.user}</strong></a></div>
+                <div class="col-2" id="date-post-${post.id}"><small>${post.updated}</small></div>
+                <div class="col-2 row justify-content-center" id="buttons-post-${post.id}" style="visibility:hidden;"></div>
+            </div>
         </div>
-    </div>
     </div>
     <div class="card-body">
         <div> 
@@ -400,11 +407,28 @@ function deletePost(post){
     .then(()=> document.querySelector(`#card-post-${post.id}`).remove())
 }
 
-function renderRealTweet(tweet){
-    // Render real twitter posts 
+function renderRealTweet(tweets, username){
+    // Render real twitter posts
 
-    const realTweetsContainer = document.getElementById("real-tweet-container")
-    console.log(tweet)
+    const realTweetsContainer = document.getElementById("real-tweet-container"); 
+    realTweetsContainer.innerHTML = "";
+
+    tweets.forEach(tweet => {
+        const cardTweet = document.createElement("div");
+        cardTweet.class = "card";
+        cardTweet.innerHTML = `
+        <div class="card-header">
+            <div id="title-card-${tweet.id}" class="row">
+                <div class="col-8"><a href="https://twitter.com/${username}"><strong>${username}</strong></a></div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div> 
+                <h5 class="card-title"id="content-${tweet.id}">${tweet.text}</h5> 
+            </div>
+        </div>`
+        realTweetsContainer.append(cardTweet);
+    })
 }
 
 

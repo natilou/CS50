@@ -17,6 +17,7 @@ from django.core.paginator import Paginator
 from django.core import serializers
 import requests
 
+
 def index(request):
     if request.user.is_authenticated:
         return render(request, "network/index.html", {
@@ -102,8 +103,6 @@ def get_posts(request):
 
 def load_posts(request):
     return render(request, "network/all-posts.html")
-
-    
 
 def profile(request, user_id): 
     profile_user = get_object_or_404(User, id=user_id)
@@ -200,10 +199,6 @@ def delete_post(request, post_id):
         return HttpResponse()
     return HttpResponseNotFound()
 
-def load_real_tweets(request):
-    return render(request, "network/real-tweets.html")
-
-
 def get_posts_page(request, queryset):
     page_number = request.GET.get('page', 1)
     per_page = request.GET.get('per_page', 10)
@@ -226,15 +221,32 @@ def get_posts_page(request, queryset):
         "data": data 
    
     }
-    return JsonResponse(payload) 
+    return JsonResponse(payload)    
 
-def get_real_tweets(request):
-    url = 'https://api.twitter.com/2/tweets/sample/stream'
+def get_twitter_username(request, username):
+    url = f'https://api.twitter.com/2/users/by?usernames={username}'
+    headers = {
+        'Authorization': 'Bearer AAAAAAAAAAAAAAAAAAAAAAuHbAEAAAAAQZLlrfq%2FD%2FI0IL%2BMzoJ01qDYwec%3DFYV1wjm9PNlEcQ6fEn4EJx8DEnExKB422jbr1nMVWK86IihRbB',
+        'Accept': 'application/json'
+    }
+    r = requests.get(url, headers=headers)
+    data_object = r.json()
+    twitter_user_id = data_object["data"][0]["id"]
+
+    return get_real_tweets(request, twitter_user_id, username)
+
+def get_real_tweets(request, twitter_user_id, username):
+    url = f'https://api.twitter.com/2/users/{twitter_user_id}/tweets'
     headers = {
         'Authorization': 'Bearer AAAAAAAAAAAAAAAAAAAAAAuHbAEAAAAAQZLlrfq%2FD%2FI0IL%2BMzoJ01qDYwec%3DFYV1wjm9PNlEcQ6fEn4EJx8DEnExKB422jbr1nMVWK86IihRbB'
     }
     r = requests.get(url, headers=headers)
-    return r.json()
+    object_response = r.json()
+    object_response["username"] = username
+    return JsonResponse(object_response)
+
+def load_real_tweets(request):
+    return render(request, "network/real-tweets.html")
 
 
 
