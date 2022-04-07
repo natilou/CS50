@@ -2,21 +2,41 @@
 
 {% block body %}
 <div class="container">
-    <h1>All Posts</h1>
+    <h1 style="margin:1rem;">All Posts</h1>
     {% if user.is_authenticated %}
-    <div id="form-div">
-        <h3 id="title">New Post</h3>
-        <form id="post-form" action="{% url 'new-post' %}" method="post">
-            {% csrf_token %}
-            {{ form }}
-            <input id="new-post-submit" type="submit" value="Post" class="btn btn-outline-secondary">
-        </form>
+    <div class="card" style="margin-bottom:1.5rem;">
+        <h3 id="title" class="card-title" style="margin-left:1rem; margin-top:1rem">New Post</h3>
+        <div class="card-body">
+            <div id="form-div">
+                <form id="post-form" action="{% url 'new-post' %}" method="post">
+                    {% csrf_token %}
+                    {{ form }}
+                    <input id="new-post-submit" type="submit" value="Post" class="btn btn-primary" style="margin-top:1rem;">
+                </form>
+            </div>
+        </div>
     </div>
     {% endif %}
-    {% if user.is_authenticated %}
-    <div id="my-posts">
+    <div class="container-xl" id="all-posts-container">
     </div>
-    {% endif %}
+    <div style="display:flex; justify-content:center;">
+        <nav id="profile-pagination"  aria-label="Page navigation">
+            <ul class="pagination">
+              <li id="previous" class="page-item">
+                <a class="page-link" aria-label="Previous">
+                  <span aria-hidden="true">&laquo;</span>
+                </a>
+              </li>
+              <li id="current" class="page-item"><a class="page-link" href="#">1</a></li>
+              <li id="next" class="page-item">
+                <a id="previous" class="page-link" aria-label="Next">
+                  <span aria-hidden="true">&raquo;</span>
+                </a>
+              </li>
+            </ul>
+          </nav>
+      </div>
+       
 </div>
   
     
