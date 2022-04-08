@@ -415,18 +415,16 @@ function renderRealTweet(tweets, username){
 
     tweets.forEach(tweet => {
         const cardTweet = document.createElement("div");
-        cardTweet.class = "card";
+        cardTweet.className = "card";
         cardTweet.innerHTML = `
         <div class="card-header">
-            <div id="title-card-${tweet.id}" class="row">
-                <div class="col-8"><a href="https://twitter.com/${username}"><strong>${username}</strong></a></div>
-            </div>
+            <div id="title-card-${tweet.id}" class="col-8"><a href="https://twitter.com/${username}"><strong>${username}</strong></a></div>
         </div>
         <div class="card-body">
-            <div> 
                 <h5 class="card-title"id="content-${tweet.id}">${tweet.text}</h5> 
-            </div>
         </div>`
+        cardTweet.style = "margin-top: 1rem"
+   
         realTweetsContainer.append(cardTweet);
     })
 }
